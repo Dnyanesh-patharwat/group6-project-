@@ -1,12 +1,22 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Create an EC2 instance
+Description: Create two t2.micro EC2 instances
 
 Resources:
-  WebAppInstance:
+  WebAppInstance1:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
       InstanceType: t2.micro
+      ImageId: ami-0d5eff06f840b45e9
       Tags:
         - Key: Name
-          Value: group6instance
+          Value: yogesh
+
+  WebAppInstance2:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0d5eff06f840b45e9
+      Tags:
+        - Key: Name
+          Value: dnyanesh
+
