@@ -9,4 +9,4 @@ Resources:
       InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: group6instance
+          Value: group6
