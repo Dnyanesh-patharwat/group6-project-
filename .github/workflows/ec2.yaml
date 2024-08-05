@@ -1,4 +1,4 @@
-name: Create EC2 Instance
+name: Create EMR Cluster
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   Deployment:
-    name: Create EC2 Instance
+    name: Create EMR Cluster
     runs-on: ubuntu-latest
 
     steps:
@@ -23,55 +23,41 @@ jobs:
           python -m pip install --upgrade pip
           pip install awscli
 
-      - name: Create EC2 Instance with CloudFormation
+      - name: Create EMR Cluster with CloudFormation
         run: |
-          aws cloudformation create-stack \
-            --stack-name ec2-example \
-            --template-body file://ec2.yaml \
-            --capabilities CAPABILITY_NAMED_IAM
+          CLUSTER_ID=$(aws cloudformation create-stack \
+            --stack-name emr-cluster-stack \
+            --template-body file://emr-template.yaml \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --query 'StackId' \
+            --output text)
+          
+          echo "CLUSTER_ID=${CLUSTER_ID}" >> $GITHUB_ENV
+          
+          echo "Waiting for CloudFormation Stack to be Created..."
+          aws cloudformation wait stack-create-complete --stack-name emr-cluster-stack
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Wait for Stack Creation
-        run: |
-          aws cloudformation wait stack-create-complete --stack-name ec2-example
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Get EC2 Instance ID and Public IP
+      - name: Get EMR Cluster ID and Public IP
         id: get_instance_details
         run: |
-          INSTANCE_ID=$(aws ec2 describe-instances \
-            --filters "Name=tag:Name,Values=snehal" \
-            --query "Reservations[0].Instances[0].InstanceId" \
-            --output text)
-          echo "INSTANCE_ID=${INSTANCE_ID}" >> $GITHUB_ENV
+          CLUSTER_ID=$(aws emr list-clusters --active --query "Clusters[0].Id" --output text)
+          echo "CLUSTER_ID=${CLUSTER_ID}" >> $GITHUB_ENV
 
-          PUBLIC_IP=$(aws ec2 describe-instances \
-            --instance-ids $INSTANCE_ID \
-            --query "Reservations[0].Instances[0].PublicIpAddress" \
-            --output text)
-          echo "PUBLIC_IP=${PUBLIC_IP}" >> $GITHUB_ENV
+          echo "EMR Cluster ID: $CLUSTER_ID"
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Add SSH Key
+      - name: Terminate EMR Cluster (Optional)
         run: |
-          echo "${{ secrets.EC2_SSH_KEY }}" > ec2-key.pem
-          chmod 600 ec2-key.pem
-
-      - name: SSH into EC2 Instance
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ec2-key.pem ec2-user@${{ env.PUBLIC_IP }} "aws s3 ls"
+          aws emr terminate-clusters --cluster-ids ${{ env.CLUSTER_ID }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
