@@ -27,9 +27,4 @@ Resources:
         CoreInstanceGroup:
           InstanceCount: 1
           InstanceType: m5.xlarge
-      Ec2Attributes:
-        KeyName: your-key
-      BootstrapActions:
-        - Name: InstallWgetAndKaggleCLI
-          ScriptBootstrapAction:
-            Path: !Sub 's3://${BootstrapScriptsBucket}/bootstrap.sh'
+          
