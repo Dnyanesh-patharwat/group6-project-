@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Create an EC2 instance and an S3 bucket
+Description: Create EC2 instance with a specified key pair
 
 Resources:
   WebAppInstance:
@@ -7,9 +7,11 @@ Resources:
     Properties:
       ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in the us-east-1 region
       InstanceType: t2.micro
+      KeyName: group_6_key  # Replace with your actual key pair name
       Tags:
         - Key: Name
           Value: snehal  # Replace with your desired instance name
+
 
   MyS3Bucket:
     Type: AWS::S3::Bucket
