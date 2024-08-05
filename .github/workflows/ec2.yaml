@@ -23,13 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install awscli
 
-      - name: Create EMR Cluster with CloudFormation
-        id: create_stack
+      - name: Create CloudFormation Stack
         run: |
           aws cloudformation create-stack \
             --stack-name emr-cluster-stack \
             --template-body file://ec2.yaml \
             --capabilities CAPABILITY_NAMED_IAM \
+            --parameters ParameterKey=KeyName,ParameterValue=group_6_key \
             --query 'StackId' \
             --output text
         env:
@@ -47,25 +47,23 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Describe CloudFormation Stack
-        if: failure()
+      - name: Get EMR Cluster ID
+        id: get_emr_cluster_id
         run: |
-          aws cloudformation describe-stacks --stack-name emr-cluster-stack
+          EMR_CLUSTER_ID=$(aws cloudformation describe-stacks \
+            --stack-name emr-cluster-stack \
+            --query "Stacks[0].Outputs[?OutputKey=='EMRClusterId'].OutputValue" \
+            --output text)
+          echo "EMR_CLUSTER_ID=${EMR_CLUSTER_ID}" >> $GITHUB_ENV
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Get EMR Cluster ID
-        id: get_instance_details
+      - name: Terminate EMR Cluster
         run: |
-          CLUSTER_ID=$(aws emr list-clusters --active --query "Clusters[0].Id" --output text)
-          echo "CLUSTER_ID=${CLUSTER_ID}" >> $GITHUB_ENV
-
-      - name: Terminate EMR Cluster (Optional)
-        run: |
-          aws emr terminate-clusters --cluster-ids ${{ env.CLUSTER_ID }}
+          aws emr terminate-clusters --cluster-ids ${{ env.EMR_CLUSTER_ID }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
