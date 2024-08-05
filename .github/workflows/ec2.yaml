@@ -24,18 +24,33 @@ jobs:
           pip install awscli
 
       - name: Create EMR Cluster with CloudFormation
+        id: create_stack
         run: |
-          CLUSTER_ID=$(aws cloudformation create-stack \
+          aws cloudformation create-stack \
             --stack-name emr-cluster-stack \
             --template-body file://ec2.yaml \
             --capabilities CAPABILITY_NAMED_IAM \
             --query 'StackId' \
-            --output text)
-          
-          echo "CLUSTER_ID=${CLUSTER_ID}" >> $GITHUB_ENV
-          
-          echo "Waiting for CloudFormation Stack to be Created..."
+            --output text
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Wait for Stack Creation
+        run: |
           aws cloudformation wait stack-create-complete --stack-name emr-cluster-stack
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Describe CloudFormation Stack
+        if: failure()
+        run: |
+          aws cloudformation describe-stacks --stack-name emr-cluster-stack
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
