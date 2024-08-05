@@ -1,22 +1,31 @@
-AWSTemplateFormatVersion: 2010-09-09
-Description: Create EC2 instance with a specified key pair
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an EMR Cluster with Hadoop and Spark
 
 Resources:
-  WebAppInstance:
-    Type: AWS::EC2::Instance
+  EMRCluster:
+    Type: AWS::EMR::Cluster
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in the us-east-1 region
-      InstanceType: t2.micro
-      KeyName: group_6_key  # Replace with your actual key pair name
+      Name: "EMR-Cluster-for-100MB-Data"
+      ReleaseLabel: emr-6.10.0
+      Applications:
+        - Name: Hadoop
+        - Name: Spark
+      Ec2Attributes:
+        KeyName: group_6_key  # Replace with your actual key pair name
+      Instances:
+        MasterInstanceGroup:
+          InstanceCount: 1
+          InstanceType: m5.xlarge
+        CoreInstanceGroup:
+          InstanceCount: 1
+          InstanceType: m5.xlarge
+        KeepJobFlowAliveWhenNoSteps: false
+        TerminationProtected: false
+        Ec2SubnetId: subnet-12345678  # Use your subnet ID
+      LogUri: s3://dnyaneshbucket  # Replace with your S3 bucket URI
+      JobFlowRole: EMR_EC2_DefaultRole
+      ServiceRole: EMR_DefaultRole
+      VisibleToAllUsers: true
       Tags:
         - Key: Name
-          Value: snehal  # Replace with your desired instance name
-
-
-  MyS3Bucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: snehal-unique-bucket-name-2024 # Replace with a globally unique name
-      Tags:
-        - Key: Name
-          Value: SnehalBucket  # Tag for the S3 bucket
+          Value: EMR-Cluster
