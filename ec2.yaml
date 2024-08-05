@@ -9,4 +9,4 @@ Resources:
       InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: Dnyanesh  # Replace with your desired instance name
+          Value: yogesh  # Replace with your desired instance name
