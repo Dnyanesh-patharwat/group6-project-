@@ -1,28 +1,35 @@
----
-AWSTemplateFormatVersion: 2010-09-09
-Description: create ec2 instance
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Infrastructure for Kaggle Data Processing Pipeline
 
 Resources:
-  WebAppInstance:
-    Type: AWS::EC2::Instance
+  RawDataBucket:
+    Type: AWS::S3::Bucket
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
-      InstanceType: t2.micro
+      BucketName: raw-data-bucket
 
-WebAppInstance2:
-    Type: AWS::EC2::Instance
+  BootstrapScriptsBucket:
+    Type: AWS::S3::Bucket
     Properties:
-      InstanceType: t2.micro
-      ImageId: ami-0d5eff06f840b45e9
-      Tags:
-        - Key: Name
-          Value: dnyanesh
-    
-    WebAppInstance2:
-      Type: AWS::EC2::Instance
-      Properties:
-        InstanceType: t2.micro
-        ImageId: ami-0d5eff06f840b45e9
-        Tags:
-          - Key: Name
-            Value: dnyanesh2
+      BucketName: bootstrap-scripts-bucket
+
+  EMRCluster:
+    Type: AWS::EMR::Cluster
+    Properties:
+      Name: EMR Kaggle Data Pipeline
+      ReleaseLabel: emr-6.5.0
+      Applications:
+        - Name: Hadoop
+        - Name: Spark
+      Instances:
+        MasterInstanceGroup:
+          InstanceCount: 1
+          InstanceType: m5.xlarge
+        CoreInstanceGroup:
+          InstanceCount: 1
+          InstanceType: m5.xlarge
+      Ec2Attributes:
+        KeyName: your-key
+      BootstrapActions:
+        - Name: InstallWgetAndKaggleCLI
+          ScriptBootstrapAction:
+            Path: !Sub 's3://${BootstrapScriptsBucket}/bootstrap.sh'
