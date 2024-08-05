@@ -9,7 +9,7 @@ Resources:
       InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: yogesh  # Replace with your desired instance name
+          Value: snehal  # Replace with your desired instance name
 Resources:
   WebAppInstance:
     Type: AWS::EC2::Instance
@@ -18,7 +18,7 @@ Resources:
       InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: Dnyanesh  # Replace with your desired instance name
+          Value: D  # Replace with your desired instance name
 Resources:
   WebAppInstance:
     Type: AWS::EC2::Instance
@@ -27,4 +27,4 @@ Resources:
       InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: sahil # Replace with your desired instance name
+          Value: N # Replace with your desired instance name
