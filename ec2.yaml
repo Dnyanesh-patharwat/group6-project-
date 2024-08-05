@@ -12,19 +12,11 @@ Resources:
     Properties:
       BucketName: bootstrap-scripts-bucket
 
-  EMRCluster:
-    Type: AWS::EMR::Cluster
+AWSTemplateFormatVersion: 2010-09-09
+Description: create ec2 instance
+Resources:
+  WebAppInstance:
+    Type: AWS::EC2::Instance
     Properties:
-      Name: EMR Kaggle Data Pipeline
-      ReleaseLabel: emr-6.5.0
-      Applications:
-        - Name: Hadoop
-        - Name: Spark
-      Instances:
-        MasterInstanceGroup:
-          InstanceCount: 1
-          InstanceType: m5.xlarge
-        CoreInstanceGroup:
-          InstanceCount: 1
-          InstanceType: m5.xlarge
-          
+      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
+      InstanceType: t2.micro
