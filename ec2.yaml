@@ -1,31 +1,20 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Create multiple EC2 instances
+Description: Create an EC2 instance and an S3 bucket
 
 Resources:
-  WebAppInstance1:
+  WebAppInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
+      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in the us-east-1 region
       InstanceType: t2.micro
       Tags:
         - Key: Name
-          Value: snehal  # Instance 1 name
+          Value: snehal  # Replace with your desired instance name
 
-  WebAppInstance2:
-    Type: AWS::EC2::Instance
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
-      InstanceType: t2.micro
+      BucketName: snehal-unique-bucket-name-2024 # Replace with a globally unique name
       Tags:
         - Key: Name
-          Value: D  # Instance 2 name
-
-  WebAppInstance3:
-    Type: AWS::EC2::Instance
-    Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
-      InstanceType: t2.micro
-      Tags:
-        - Key: Name
-          Value: N  # Instance 3 name
-          
+          Value: SnehalBucket  # Tag for the S3 bucket
