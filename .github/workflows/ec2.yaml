@@ -27,7 +27,7 @@ jobs:
         run: |
           CLUSTER_ID=$(aws cloudformation create-stack \
             --stack-name emr-cluster-stack \
-            --template-body file://emr-template.yaml \
+            --template-body file://ec2.yaml \
             --capabilities CAPABILITY_NAMED_IAM \
             --query 'StackId' \
             --output text)
