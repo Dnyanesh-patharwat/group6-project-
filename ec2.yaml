@@ -5,7 +5,7 @@ Resources:
   MyS3Bucket1:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: dnyanesh-unique-bucket-name-2024-1 # Replace with a globally unique name
+      BucketName: dnyanesh # Replace with a globally unique name
       Tags:
         - Key: Name
           Value: Dny1  # Tag for the S3 bucket
@@ -13,7 +13,7 @@ Resources:
   MyS3Bucket2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: dnyanesh-unique-bucket-name-2024-2 # Replace with a globally unique name
+      BucketName: dnyanespatharwat # Replace with a globally unique name
       Tags:
         - Key: Name
           Value: Dny2 # Tag for the S3 bucket
