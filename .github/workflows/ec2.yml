@@ -23,12 +23,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install awscli
 
-      - name: Create CloudFormation Change Set
+      - name: Delete CloudFormation Stack (if exists)
         run: |
-          aws cloudformation create-change-set \
+          aws cloudformation delete-stack --stack-name ec2-stack || true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Wait for Stack Deletion
+        run: |
+          aws cloudformation wait stack-delete-complete --stack-name ec2-stack
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Create CloudFormation Stack
+        run: |
+          aws cloudformation create-stack \
             --stack-name ec2-stack \
             --template-body file://ec2.yaml \
-            --change-set-name my-change-set \
             --capabilities CAPABILITY_NAMED_IAM
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
@@ -36,22 +53,9 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Wait for Change Set
+      - name: Wait for Stack Creation
         run: |
-          aws cloudformation wait change-set-create-complete \
-            --stack-name ec2-stack \
-            --change-set-name my-change-set
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Execute Change Set
-        run: |
-          aws cloudformation execute-change-set \
-            --stack-name ec2-stack \
-            --change-set-name my-change-set
+          aws cloudformation wait stack-create-complete --stack-name ec2-stack
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
