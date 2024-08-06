@@ -22,6 +22,9 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AmazonCloudWatchFullAccess
       Policies:
         - PolicyName: GlueS3Access
           PolicyDocument:
@@ -62,6 +65,19 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: arn:aws:logs:*:*:log-group:/aws-glue/*
+              - Effect: Allow
+                Action:
+                  - glue:StartJobRun
+                  - glue:StopJobRun
+                  - glue:GetJobRun
+                  - glue:GetJobRuns
+                  - glue:GetJob
+                  - glue:ListJobs
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !Sub arn:aws:s3:::group6data
 
   # Glue Job
   GlueJob:
