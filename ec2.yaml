@@ -6,7 +6,7 @@ Resources:
   Group6DataBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: group6data # Use the existing bucket name
+      BucketName: group6data # Ensure this is globally unique
 
   # IAM Role for Glue
   GlueServiceRole:
