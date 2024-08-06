@@ -1,4 +1,4 @@
-name: Create EC2 Instance and Start Glue Job
+name: Create EC2 Instance and Glue Job
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   deployment:
-    name: Create EC2 Instance and Start Glue Job
+    name: Create EC2 Instance and Glue Job
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +42,11 @@ jobs:
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
       - name: Create CloudFormation Stack
-        run: aws cloudformation create-stack --stack-name ec2-stack --template-body file://ec2.yaml
+        run: |
+          aws cloudformation create-stack \
+            --stack-name ec2-stack \
+            --template-body file://ec2.yaml \
+            --capabilities CAPABILITY_NAMED_IAM
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
@@ -66,4 +70,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
