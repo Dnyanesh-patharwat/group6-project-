@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Setup AWS Glue Job with input and output directories in the same S3 bucket
 
 Resources:
-  # Existing Source and Destination S3 Bucket
+  # S3 Bucket
   Group6DataBucket:
     Type: AWS::S3::Bucket
     Properties:
