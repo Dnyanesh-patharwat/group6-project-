@@ -8,83 +8,12 @@ Resources:
     Properties:
       BucketName: group6data # Ensure this is globally unique
 
-  # IAM Role for Glue
-  GlueServiceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: AWSGlueServiceRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: glue.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
-        - arn:aws:iam::aws:policy/AmazonCloudWatchFullAccess
-      Policies:
-        - PolicyName: GlueS3Access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
-                Resource:
-                  - !Sub arn:aws:s3:::group6data
-                  - !Sub arn:aws:s3:::group6data/*
-        - PolicyName: GlueExecution
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - glue:GetTable
-                  - glue:GetTables
-                  - glue:CreateTable
-                  - glue:UpdateTable
-                  - glue:DeleteTable
-                  - glue:GetDatabase
-                  - glue:GetDatabases
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - cloudwatch:PutMetricData
-                  - cloudwatch:GetMetricStatistics
-                  - cloudwatch:ListMetrics
-                  - cloudwatch:PutMetricAlarm
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: arn:aws:logs:*:*:log-group:/aws-glue/*
-              - Effect: Allow
-                Action:
-                  - glue:StartJobRun
-                  - glue:StopJobRun
-                  - glue:GetJobRun
-                  - glue:GetJobRuns
-                  - glue:GetJob
-                  - glue:ListJobs
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                Resource: !Sub arn:aws:s3:::group6data
-
   # Glue Job
   GlueJob:
     Type: AWS::Glue::Job
     Properties:
       Name: MyGlueJob
-      Role: !GetAtt GlueServiceRole.Arn
+      Role: arn:aws:iam::494850518194:role/LabRole # Use the existing LabRole
       Command:
         Name: glueetl
         ScriptLocation: !Sub s3://group6data/scripts/PythonScript.txt.py # Path to the script
