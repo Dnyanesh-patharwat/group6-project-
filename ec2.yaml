@@ -1,85 +1,62 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: Setup AWS Glue Job with input and output directories in the same S3 bucket
-
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  InputFilePath:
+    Type: String
 Resources:
-  # S3 Bucket
-  Group6DataBucket:
-    Type: AWS::S3::Bucket
+  MyEMRCluster:
+    Type: AWS::EMR::Cluster
     Properties:
-      BucketName: group6data # Ensure this is globally unique
+      Name: MyEMRCluster
+      ReleaseLabel: emr-6.10.0
+      Applications:
+       - Name: Spark
+      Instances:
+        MasterInstanceGroup:
+          InstanceCount: 1  
+          InstanceType: m5.xlarge
+          Name: MASTER
+        CoreInstanceGroup: 
+          InstanceCount: 2
+          InstanceType: m5.xlarge
+          Name: CORE
+        
+        Ec2SubnetIds: 
+          - subnet-"your subnet"
+        Ec2KeyName: "your key name"
+      JobFlowRole: "EC2_iam_role_defined"
+      ServiceRole: "EMR_iam_Role_defined"
+          
+  MySparkStep:
+    Type: AWS::EMR::Step
+    Properties:
+      Name: MySparkStep
+      ActionOnFailure: CONTINUE
+      HadoopJarStep:
+        Jar: command-runner.jar
+        Args:
+          - spark-submit
+          - --deploy-mode
+          - cluster
+          - --class
+          - org.apache.spark.deploy.SparkSubmit
+          - s3://"your pyscript location"
+      JobFlowId: !Ref MyEMRCluster
+      DependsOn: MyEMRCrawlerTrigger
 
-  # IAM Role for Glue
-  GlueServiceRole:
-    Type: AWS::IAM::Role
+  MyEMRCrawlerTrigger:
+    Type: AWS::Glue::Trigger
     Properties:
-      RoleName: GlueServiceRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: glue.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
-      Policies:
-        - PolicyName: GlueS3Access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
-                Resource:
-                  - !Sub arn:aws:s3:::group6data
-                  - !Sub arn:aws:s3:::group6data/*
-        - PolicyName: GlueExecution
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - glue:GetTable
-                  - glue:GetTables
-                  - glue:CreateTable
-                  - glue:UpdateTable
-                  - glue:DeleteTable
-                  - glue:GetDatabase
-                  - glue:GetDatabases
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: arn:aws:logs:*:*:log-group:/aws-glue/*
-              - Effect: Allow
-                Action:
-                  - glue:StartJobRun
-                  - glue:StopJobRun
-                  - glue:GetJobRun
-                  - glue:GetJobRuns
-                  - glue:GetJob
-                  - glue:ListJobs
-                Resource: '*'
+      Name: MyEMRCrawlerTrigger
+      Type: ON_DEMAND
+      Actions:
+        - CrawlerName: MyEMRCrawlerName
+      Predicate:
+        Conditions:
+          - LogicalOperator: EQUALS
+            JobRunState:
+              - SUCCEEDED
+            CrawlerName: MyEMRCrawlerName
+            State: SUCCEEDED
+        Logical: AND
 
-  # Glue Job
-  GlueJob:
-    Type: AWS::Glue::Job
-    Properties:
-      Name: MyGlueJob
-      Role: !GetAtt GlueServiceRole.Arn
-      Command:
-        Name: glueetl
-        ScriptLocation: !Sub s3://group6data/scripts/PythonScripts.py # Path to the script
-      DefaultArguments:
-        '--job-language': 'python'
-        '--TempDir': !Sub s3://group6data/temporary/
-      MaxCapacity: 2
-      GlueVersion: '2.0'
-      ExecutionProperty:
-        MaxConcurrentRuns: 1
+  
