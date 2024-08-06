@@ -8,24 +8,7 @@ Resources:
     Properties:
       BucketName: group6data # Ensure this is globally unique
 
-  # Glue Job
-  GlueJob:
-    Type: AWS::Glue::Job
-    Properties:
-      Name: MyGlueJob
-      Role: arn:aws:iam::494850518194:role/LabRole
-      Command:
-        Name: glueetl
-        ScriptLocation: !Sub s3://group6data/scripts/PythonScript.txt.py # Path to the script
-      DefaultArguments:
-        '--job-language': 'python'
-        '--TempDir': !Sub s3://group6data/temporary/
-      MaxCapacity: 2
-      GlueVersion: '2.0'
-      ExecutionProperty:
-        MaxConcurrentRuns: 1
 
-  # Glue Crawler Trigger
   MyEMRCrawlerTrigger:
     Type: AWS::Glue::Trigger
     Properties:
@@ -36,19 +19,8 @@ Resources:
       Predicate:
         Conditions:
           - LogicalOperator: EQUALS
+            JobRunState:
+              - SUCCEEDED
             CrawlerName: MyEMRCrawlerName
             State: SUCCEEDED
         Logical: AND
-
-  # Example Glue Crawler (Assumed to be defined for completeness)
-  MyEMRCrawler:
-    Type: AWS::Glue::Crawler
-    Properties:
-      Name: MyEMRCrawlerName
-      Role: arn:aws:iam::494850518194:role/LabRole
-      DatabaseName: MyDatabase
-      Targets:
-        S3Targets:
-          - Path: !Sub s3://group6data/input/
-      Schedule: 'cron(0 12 * * ? *)'
-      # More properties as needed
