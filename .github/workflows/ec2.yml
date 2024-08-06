@@ -23,15 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install awscli
 
-      - name: Validate CloudFormation Template
-        run: |
-          aws cloudformation validate-template --template-body file://ec2.yaml
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
       - name: Delete CloudFormation Stack (if exists)
         run: |
           aws cloudformation delete-stack --stack-name ec2-stack || true
@@ -51,11 +42,7 @@ jobs:
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
       - name: Create CloudFormation Stack
-        run: |
-          aws cloudformation create-stack \
-            --stack-name ec2-stack \
-            --template-body file://ec2.yaml \
-            --capabilities CAPABILITY_NAMED_IAM
+        run: aws cloudformation --stack-name ec2-example --template-body file://ec2.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
