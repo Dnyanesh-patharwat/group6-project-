@@ -1,10 +1,85 @@
----
-AWSTemplateFormatVersion: 2010-09-09
-Description: create ec2 instance
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Setup AWS Glue Job with input and output directories in the same S3 bucket
 
 Resources:
-  WebAppInstance:
-    Type: AWS::EC2::Instance
+  # Existing Source and Destination S3 Bucket
+  Group6DataBucket:
+    Type: AWS::S3::Bucket
     Properties:
-      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
-      InstanceType: t2.micro
+      BucketName: group6data # Ensure this is globally unique
+
+  # IAM Role for Glue
+  GlueServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: GlueServiceRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
+      Policies:
+        - PolicyName: GlueS3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::group6data
+                  - !Sub arn:aws:s3:::group6data/*
+        - PolicyName: GlueExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:CreateTable
+                  - glue:UpdateTable
+                  - glue:DeleteTable
+                  - glue:GetDatabase
+                  - glue:GetDatabases
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:log-group:/aws-glue/*
+              - Effect: Allow
+                Action:
+                  - glue:StartJobRun
+                  - glue:StopJobRun
+                  - glue:GetJobRun
+                  - glue:GetJobRuns
+                  - glue:GetJob
+                  - glue:ListJobs
+                Resource: '*'
+
+  # Glue Job
+  GlueJob:
+    Type: AWS::Glue::Job
+    Properties:
+      Name: MyGlueJob
+      Role: !GetAtt GlueServiceRole.Arn
+      Command:
+        Name: glueetl
+        ScriptLocation: !Sub s3://group6data/scripts/PythonScripts.py # Path to the script
+      DefaultArguments:
+        '--job-language': 'python'
+        '--TempDir': !Sub s3://group6data/temporary/
+      MaxCapacity: 2
+      GlueVersion: '2.0'
+      ExecutionProperty:
+        MaxConcurrentRuns: 1
