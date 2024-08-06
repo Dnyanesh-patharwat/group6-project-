@@ -1,71 +1,28 @@
-name: Create EMR Cluster
-
+name: create a ec2 instance
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   Deployment:
-    name: Create EMR Cluster
+    name: create EC2 Instance
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the Code
-        uses: actions/checkout@v2
+      - name: Checkout the code
+        uses: actions/checkout@v1
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2
         with:
           python-version: '3.7'
-
-      - name: Install AWS CLI
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install awscli
-
-      - name: Create CloudFormation Stack
-        run: |
-          aws cloudformation create-stack \
-            --stack-name emr-cluster-stack \
-            --template-body file://ec2.yaml \
-            --capabilities CAPABILITY_NAMED_IAM \
-            --parameters ParameterKey=KeyName,ParameterValue=group_6_key \
-            --query 'StackId' \
-            --output text
+      - run: aws cloudformation create-stack --stack-name ec2-example --template-body file://ec2.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Wait for Stack Creation
-        run: |
-          aws cloudformation wait stack-create-complete --stack-name emr-cluster-stack
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Get EMR Cluster ID
-        id: get_emr_cluster_id
-        run: |
-          EMR_CLUSTER_ID=$(aws cloudformation describe-stacks \
-            --stack-name emr-cluster-stack \
-            --query "Stacks[0].Outputs[?OutputKey=='EMRClusterId'].OutputValue" \
-            --output text)
-          echo "EMR_CLUSTER_ID=${EMR_CLUSTER_ID}" >> $GITHUB_ENV
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Terminate EMR Cluster
-        run: |
-          aws emr terminate-clusters --cluster-ids ${{ env.EMR_CLUSTER_ID }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+          
