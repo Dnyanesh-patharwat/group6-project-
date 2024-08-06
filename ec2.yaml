@@ -1,102 +1,19 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: AWS CloudFormation template to create an EMR cluster
 
-Parameters:
-  KeyName:
-    Description: The EC2 key pair name to SSH into the nodes
-    Type: AWS::EC2::KeyPair::KeyName
-
-  ClusterName:
-    Description: The name of the EMR cluster
-    Type: String
-    Default: MyEMRCluster
-
-  InstanceType:
-    Description: EC2 instance type for the cluster nodes
-    Type: String
-    Default: m5.xlarge
-
-  InstanceCount:
-    Description: Number of core nodes in the cluster
-    Type: Number
-    Default: 2
+AWSTemplateFormatVersion: 2010-09-09
+Description: create s3 buckets
 
 Resources:
-  EMRCluster:
-    Type: AWS::EMR::Cluster
-    Properties: 
-      Name: !Ref ClusterName
-      ReleaseLabel: emr-5.33.0
-      Applications:
-        - Name: Hadoop
-        - Name: Spark
-      Instances: 
-        MasterInstanceGroup: 
-          InstanceCount: 1
-          InstanceType: !Ref InstanceType
-          Name: MasterInstanceGroup
-        CoreInstanceGroup: 
-          InstanceCount: !Ref InstanceCount
-          InstanceType: !Ref InstanceType
-          Name: CoreInstanceGroup
-      JobFlowRole: !GetAtt EMR_EC2InstanceProfile.Arn
-      ServiceRole: !GetAtt EMR_ServiceRole.Arn
-      VisibleToAllUsers: true
-
-  EMR_ServiceRole:
-    Type: AWS::IAM::Role
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
     Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: elasticmapreduce.amazonaws.com
-            Action: sts:AssumeRole
-      Path: "/"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
-
-  EMR_EC2InstanceProfile:
-    Type: AWS::IAM::InstanceProfile
+      BucketName: dnyanesh-unique-bucket-name-2024-1 # Replace with a globally unique name
+      Tags:
+        - Key: Name
+          Value: Dny1  # Tag for the S3 bucket
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
     Properties:
-      Roles:
-        - Ref: EMR_EC2InstanceRole
-      Path: "/"
-
-  EMR_EC2InstanceRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ec2.amazonaws.com
-            Action: sts:AssumeRole
-      Path: "/"
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role
-
-  EMR_SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Enable SSH access and application ports
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 8088
-          ToPort: 8088
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 0.0.0.0/0
-
-Outputs:
-  EMRClusterId:
-    Description: The ID of the EMR cluster
-    Value: !Ref EMRCluster
+      BucketName: dnyanesh-unique-bucket-name-2024-2 # Replace with a globally unique name
+      Tags:
+        - Key: Name
+          Value: Dny2 # Tag for the S3 bucket
