@@ -1,54 +1,10 @@
-Resources:
-  # Glue Job Role (reusing the previous role)
-  GlueJobRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: GlueJobRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: glue.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
-      Policies:
-        - PolicyName: GlueJobAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
-                Resource:
-                  - !Sub arn:aws:s3:::group6data
-                  - !Sub arn:aws:s3:::group6data/*
-              - Effect: Allow
-                Action:
-                  - glue:GetTable
-                  - glue:GetTables
-                  - glue:GetDatabase
-                Resource: '*'
+---
+AWSTemplateFormatVersion: 2010-09-09
+Description: create ec2 instance
 
-  # Glue Job
-  MyGlueJob:
-    Type: AWS::Glue::Job
+Resources:
+  WebAppInstance:
+    Type: AWS::EC2::Instance
     Properties:
-      Name: MyGlueJob
-      Role: !GetAtt GlueJobRole.Arn
-      Command:
-        Name: glueetl
-        ScriptLocation: !Sub s3://group6data/scripts/PythonScript.py # Path to the script
-        PythonVersion: 3
-      DefaultArguments:
-        '--job-language': 'python'
-        '--TempDir': !Sub s3://group6data/temporary/
-      MaxCapacity: 2
-      GlueVersion: '2.0'
-      ExecutionProperty:
-        MaxConcurrentRuns: 1
+      ImageId: ami-0d5eff06f840b45e9 # ImageID valid only in us-east-1 region
+      InstanceType: t2.micro
