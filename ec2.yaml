@@ -1,16 +1,16 @@
-
 AWSTemplateFormatVersion: 2010-09-09
-Description: create s3 buckets
+Description: Create S3 buckets
 
 Resources:
-  MyS3Bucket:
+  MyS3Bucket1:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: dnyanesh-unique-bucket-name-2024-1 # Replace with a globally unique name
       Tags:
         - Key: Name
           Value: Dny1  # Tag for the S3 bucket
-  MyS3Bucket:
+
+  MyS3Bucket2:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: dnyanesh-unique-bucket-name-2024-2 # Replace with a globally unique name
