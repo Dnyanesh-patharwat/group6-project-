@@ -1,62 +1,17 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Parameters:
-  InputFilePath:
-    Type: String
 Resources:
-  MyEMRCluster:
-    Type: AWS::EMR::Cluster
+  GlueJob:
+    Type: AWS::Glue::Job
     Properties:
-      Name: MyEMRCluster
-      ReleaseLabel: emr-6.10.0
-      Applications:
-       - Name: Spark
-      Instances:
-        MasterInstanceGroup:
-          InstanceCount: 1  
-          InstanceType: m5.xlarge
-          Name: MASTER
-        CoreInstanceGroup: 
-          InstanceCount: 2
-          InstanceType: m5.xlarge
-          Name: CORE
-        
-        Ec2SubnetIds: 
-          - subnet-"your subnet"
-        Ec2KeyName: "your key name"
-      JobFlowRole: "EC2_iam_role_defined"
-      ServiceRole: "EMR_iam_Role_defined"
-          
-  MySparkStep:
-    Type: AWS::EMR::Step
-    Properties:
-      Name: MySparkStep
-      ActionOnFailure: CONTINUE
-      HadoopJarStep:
-        Jar: command-runner.jar
-        Args:
-          - spark-submit
-          - --deploy-mode
-          - cluster
-          - --class
-          - org.apache.spark.deploy.SparkSubmit
-          - s3://"your pyscript location"
-      JobFlowId: !Ref MyEMRCluster
-      DependsOn: MyEMRCrawlerTrigger
-
-  MyEMRCrawlerTrigger:
-    Type: AWS::Glue::Trigger
-    Properties:
-      Name: MyEMRCrawlerTrigger
-      Type: ON_DEMAND
-      Actions:
-        - CrawlerName: MyEMRCrawlerName
-      Predicate:
-        Conditions:
-          - LogicalOperator: EQUALS
-            JobRunState:
-              - SUCCEEDED
-            CrawlerName: MyEMRCrawlerName
-            State: SUCCEEDED
-        Logical: AND
-
-  
+      Name: MyGlueJob
+      Role: arn:aws:iam::494850518194:role/GlueServiceRole  # Replace with your Glue role ARN
+      Command:
+        Name: glueetl
+        ScriptLocation: s3://group6data/scripts/PythonScript.py
+      DefaultArguments:
+        '--job-language': 'python'
+        '--TempDir': s3://group6data/temporary/
+      MaxCapacity: 2
+      GlueVersion: '3.0'
+      ExecutionProperty:
+        MaxConcurrentRuns: 1
