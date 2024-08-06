@@ -1,26 +1,54 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: Setup an AWS Glue Job with input and output directories in the same S3 bucket and a Glue Trigger for the Crawler
-
 Resources:
-  # Existing Source and Destination S3 Bucket
-  Group6DataBucket:
-    Type: AWS::S3::Bucket
+  # Glue Job Role (reusing the previous role)
+  GlueJobRole:
+    Type: AWS::IAM::Role
     Properties:
-      BucketName: group6data # Ensure this is globally unique
+      RoleName: GlueJobRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
+      Policies:
+        - PolicyName: GlueJobAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::group6data
+                  - !Sub arn:aws:s3:::group6data/*
+              - Effect: Allow
+                Action:
+                  - glue:GetTable
+                  - glue:GetTables
+                  - glue:GetDatabase
+                Resource: '*'
 
-
-  MyEMRCrawlerTrigger:
-    Type: AWS::Glue::Trigger
+  # Glue Job
+  MyGlueJob:
+    Type: AWS::Glue::Job
     Properties:
-      Name: MyEMRCrawlerTrigger
-      Type: ON_DEMAND
-      Actions:
-        - CrawlerName: MyEMRCrawlerName
-      Predicate:
-        Conditions:
-          - LogicalOperator: EQUALS
-            JobRunState:
-              - SUCCEEDED
-            CrawlerName: MyEMRCrawlerName
-            State: SUCCEEDED
-        Logical: AND
+      Name: MyGlueJob
+      Role: !GetAtt GlueJobRole.Arn
+      Command:
+        Name: glueetl
+        ScriptLocation: !Sub s3://group6data/scripts/PythonScript.py # Path to the script
+        PythonVersion: 3
+      DefaultArguments:
+        '--job-language': 'python'
+        '--TempDir': !Sub s3://group6data/temporary/
+      MaxCapacity: 2
+      GlueVersion: '2.0'
+      ExecutionProperty:
+        MaxConcurrentRuns: 1
