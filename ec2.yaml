@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Setup an AWS Glue Job with input and output directories in the same S3 bucket
+Description: Setup an AWS Glue Job with input and output directories in the same S3 bucket and a Glue Trigger for the Crawler
 
 Resources:
   # Existing Source and Destination S3 Bucket
@@ -7,74 +7,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: group6data # Ensure this is globally unique
-
-  # IAM Role for Glue
-  LabRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: LabRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: glue.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
-        - arn:aws:iam::aws:policy/AmazonS3FullAccess
-        - arn:aws:iam::aws:policy/AmazonCloudWatchLogsFullAccess
-        - arn:aws:iam::aws:policy/AmazonCloudWatchFullAccess
-      Policies:
-        - PolicyName: GlueS3Access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:ListBucket
-                Resource:
-                  - !Sub arn:aws:s3:::group6data
-                  - !Sub arn:aws:s3:::group6data/*
-        - PolicyName: GlueExecution
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - glue:GetTable
-                  - glue:GetTables
-                  - glue:CreateTable
-                  - glue:UpdateTable
-                  - glue:DeleteTable
-                  - glue:GetDatabase
-                  - glue:GetDatabases
-                  - glue:StartJobRun
-                  - glue:StopJobRun
-                  - glue:GetJobRun
-                  - glue:GetJobRuns
-                  - glue:GetJob
-                  - glue:ListJobs
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - cloudwatch:PutMetricData
-                  - cloudwatch:GetMetricStatistics
-                  - cloudwatch:ListMetrics
-                  - cloudwatch:PutMetricAlarm
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - logs:CreateLogGroup
-                  - logs:CreateLogStream
-                  - logs:PutLogEvents
-                Resource: arn:aws:logs:*:*:log-group:/aws-glue/*
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                Resource: !Sub arn:aws:s3:::group6data
 
   # Glue Job
   GlueJob:
@@ -92,3 +24,31 @@ Resources:
       GlueVersion: '2.0'
       ExecutionProperty:
         MaxConcurrentRuns: 1
+
+  # Glue Crawler Trigger
+  MyEMRCrawlerTrigger:
+    Type: AWS::Glue::Trigger
+    Properties:
+      Name: MyEMRCrawlerTrigger
+      Type: ON_DEMAND
+      Actions:
+        - CrawlerName: MyEMRCrawlerName
+      Predicate:
+        Conditions:
+          - LogicalOperator: EQUALS
+            CrawlerName: MyEMRCrawlerName
+            State: SUCCEEDED
+        Logical: AND
+
+  # Example Glue Crawler (Assumed to be defined for completeness)
+  MyEMRCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: MyEMRCrawlerName
+      Role: arn:aws:iam::494850518194:role/LabRole
+      DatabaseName: MyDatabase
+      Targets:
+        S3Targets:
+          - Path: !Sub s3://group6data/input/
+      Schedule: 'cron(0 12 * * ? *)'
+      # More properties as needed
