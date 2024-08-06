@@ -13,7 +13,7 @@ Resources:
     Type: AWS::Glue::Job
     Properties:
       Name: MyGlueJob
-      Role: arn:aws:iam::494850518194:role/LabRole
+      Role: arn:aws:iam::494850518194:role/vocareum-eventbridge
       Command:
         Name: glueetl
         ScriptLocation: !Sub s3://group6data/scripts/PythonScript.txt.py # Path to the script
