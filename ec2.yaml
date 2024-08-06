@@ -20,6 +20,8 @@ Resources:
             Principal:
               Service: glue.amazonaws.com
             Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
       Policies:
         - PolicyName: GlueS3Access
           PolicyDocument:
@@ -77,4 +79,3 @@ Resources:
       GlueVersion: '2.0'
       ExecutionProperty:
         MaxConcurrentRuns: 1
-
