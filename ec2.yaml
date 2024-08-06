@@ -13,7 +13,7 @@ Resources:
   MyS3Bucket2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: dnyanesh-unique-bucket-name-2024-2 # Replace with a globally unique name
+      BucketName: dnyanesh-unique-bucket-name-2024-3 # Replace with a globally unique name
       Tags:
         - Key: Name
           Value: Dny2
