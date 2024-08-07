@@ -6,7 +6,7 @@ Resources:
   GlueDatabase:
     Type: 'AWS::Glue::Database'
     Properties: 
-      CatalogId: 494850518194
+      CatalogId: 351475973164
       DatabaseInput: 
         Name: my_database
 
