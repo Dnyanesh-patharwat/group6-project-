@@ -6,19 +6,19 @@ Resources:
   GlueDatabase:
     Type: 'AWS::Glue::Database'
     Properties: 
-      CatalogId: 351475973164
+      CatalogId: 966884175598
       DatabaseInput: 
         Name: my_database
 
   GlueCrawler:
     Type: 'AWS::Glue::Crawler'
     Properties:
-      Role: arn:aws:iam::351475973164:role/LabRole
+      Role: arn:aws:iam::966884175598:role/LabRole
       DatabaseName: !Ref GlueDatabase
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://group6data1/input/data1.csv'
+          - Path: 's3://groupdata6/input/data1.csv'
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
@@ -26,13 +26,13 @@ Resources:
     Type: 'AWS::Glue::Job'
     Properties:
       Name: csv_to_parquet_job
-      Role: arn:aws:iam::351475973164:role/LabRole
+      Role: arn:aws:iam::966884175598:role/LabRole
       Command:
         Name: glueetl
-        ScriptLocation: 's3://group6data1/script/pythonscript.py'
+        ScriptLocation: 's3://groupdata6/script/pythonscript.py'
         PythonVersion: '3'
       DefaultArguments:
-        '--TempDir': 's3://group6data1/temp'
+        '--TempDir': 's3://groupdata6/temp'
         '--job-bookmark-option': 'job-bookmark-enable'
       MaxRetries: 0
       Timeout: 2880
