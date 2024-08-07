@@ -1,74 +1,54 @@
-AWSTemplateFormatVersion: "2010-09-09"
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template to create a Glue database, crawler, and ETL job using an existing IAM role.
+
 Resources:
-  GlueDatabaseInput:
-    Type: AWS::Glue::Database
-    Properties:
-      CatalogId: !Ref AWS::AccountId
-      DatabaseInput:
-        Name: input_database  # Replace with your desired database name
-        Description: "Database for input data"
-
-  GlueDatabaseOutput:
-    Type: AWS::Glue::Database
-    Properties:
-      CatalogId: !Ref AWS::AccountId
-      DatabaseInput:
-        Name: output_database  # Replace with your desired database name
-        Description: "Database for output data"
-
-  GlueJob:
-    Type: AWS::Glue::Job
-    Properties:
-      Name: MyGlueJob
-      Role: arn:aws:iam::952084545413:role/aws_glue  # Ensure this role has appropriate permissions
-      Command:
-        Name: glueetl
-        ScriptLocation: s3://newpiro/script/PythonScript.py
-      DefaultArguments:
-        '--job-language': 'python'
-        '--TempDir': s3://newpiro/temp/
-        '--input_bucket': newpiro
-        '--input_directory': input
-        '--output_bucket': newpiro
-        '--output_directory': output
-      MaxCapacity: 2
-      GlueVersion: '3.0'
-      ExecutionProperty:
-        MaxConcurrentRuns: 1
-      WorkerType: G.1X
-      NumberOfWorkers: 2
-      Description: "ETL job to transform data from input directory to output directory"
-      Tags:
-        Name: MyGlueJob
-        Environment: Production
+  GlueDatabase:
+    Type: 'AWS::Glue::Database'
+    Properties: 
+      CatalogId: 494850518194
+      DatabaseInput: 
+        Name: my_database
 
   GlueCrawler:
-    Type: AWS::Glue::Crawler
+    Type: 'AWS::Glue::Crawler'
     Properties:
-      Name: MyGlueCrawler
-      Role: arn:aws:iam::952084545413:role/aws_glue  # Ensure this role has appropriate permissions
-      DatabaseName: input_database  # Reference the database created for input
+      Role: arn:aws:iam::494850518194:role/LabRole
+      DatabaseName: !Ref GlueDatabase
+      Name: my_crawler
       Targets:
         S3Targets:
-          - Path: s3://newpiro/input/
-      TablePrefix: my_prefix_  # Optional: Prefix for the tables created
-      CrawlerSecurityConfiguration: my-security-configuration  # Optional: Use if you have specific security configuration
-      SchemaChangePolicy:
-        UpdateBehavior: UPDATE_IN_DATABASE
-        DeleteBehavior: DELETE
-      RecrawlPolicy:
-        RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY  # Optionally set to CRAWL_EVERYTHING or CRAWL_NEW_FOLDERS_ONLY
+          - Path: 's3://yogeshaws2000/data.csv'
+      Schedule:
+        ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
+
+  GlueETLJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: csv_to_parquet_job
+      Role: arn:aws:iam::494850518194:role/LabRole
+      Command:
+        Name: glueetl
+        ScriptLocation: 's3://your-bucket/path/to/transform_script.py'
+        PythonVersion: '3'
+      DefaultArguments:
+        '--TempDir': 's3://yogeshaws2000/image/'
+        '--job-bookmark-option': 'job-bookmark-enable'
+      MaxRetries: 0
+      Timeout: 2880
+      GlueVersion: '2.0'
+      NumberOfWorkers: 10
+      WorkerType: G.1X
 
 Outputs:
-  GlueJobName:
-    Description: "The name of the Glue job"
-    Value: !Ref GlueJob
+  GlueDatabaseName:
+    Description: Name of the Glue Database
+    Value: !Ref GlueDatabase
+
   GlueCrawlerName:
-    Description: "The name of the Glue crawler"
+    Description: Name of the Glue Crawler
     Value: !Ref GlueCrawler
-  GlueDatabaseInputName:
-    Description: "The name of the input database"
-    Value: !Ref GlueDatabaseInput
-  GlueDatabaseOutputName:
-    Description: "The name of the output database"
-    Value: !Ref GlueDatabaseOutput
+
+  GlueETLJobName:
+    Description: Name of the Glue ETL Job
+    Value: !Ref GlueETLJob
