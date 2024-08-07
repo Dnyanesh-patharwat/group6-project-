@@ -15,11 +15,6 @@ jobs:
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_GANU }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY_GANU }}
-          aws-region: us-east-1  # Replace with your AWS region
-
       - name: Deploy CloudFormation Stack
         run: |
           aws cloudformation deploy \
@@ -31,6 +26,10 @@ jobs:
               OutputBucket=newpiro \
               OutputDirectory=output \
             --capabilities CAPABILITY_NAMED_IAM
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GANU }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY_GANU }}
+          AWS_DEFAULT_REGION: us-east-1
 
       - name: Start Glue Job
         run: |
