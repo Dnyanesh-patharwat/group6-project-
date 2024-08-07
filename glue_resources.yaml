@@ -18,7 +18,7 @@ Resources:
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://groupdata6/input/data1.csv'
+          - Path: 's3://groupdata6/input/data.csv'
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
@@ -29,7 +29,7 @@ Resources:
       Role: arn:aws:iam::966884175598:role/LabRole
       Command:
         Name: glueetl
-        ScriptLocation: 's3://groupdata6/script/pythonscript.py'
+        ScriptLocation: 's3://groupdata6/script/transform_script.py'
         PythonVersion: '3'
       DefaultArguments:
         '--TempDir': 's3://groupdata6/temp'
