@@ -18,7 +18,7 @@ Resources:
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://yogeshaws2000/data.csv'
+          - Path: 's3://group6data1/input'
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
@@ -29,10 +29,10 @@ Resources:
       Role: arn:aws:iam::494850518194:role/LabRole
       Command:
         Name: glueetl
-        ScriptLocation: 's3://your-bucket/path/to/transform_script.py'
+        ScriptLocation: 's3://group6data1/script/transform_script.py'
         PythonVersion: '3'
       DefaultArguments:
-        '--TempDir': 's3://yogeshaws2000/image/'
+        '--TempDir': 's3://group6data1/temp'
         '--job-bookmark-option': 'job-bookmark-enable'
       MaxRetries: 0
       Timeout: 2880
