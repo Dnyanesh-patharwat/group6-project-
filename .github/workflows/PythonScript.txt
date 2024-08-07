@@ -16,8 +16,8 @@ glueContext = GlueContext(sc)
 spark = glueContext.spark_session
 
 # Define source and destination paths
-source_path = "s3://group6data/inputdata/"
-destination_path = "s3://group6data/outputdata/"
+source_path = "s3://group6data1/input/"
+destination_path = "s3://group6data1/output/"
 
 # Read from source S3 bucket
 source_dynamic_frame = glueContext.create_dynamic_frame.from_options(
