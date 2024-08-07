@@ -15,7 +15,7 @@ job.init(args['JOB_NAME'], args)
 
 # Define the S3 paths
 input_path = 's3://groupdata6/input/data.csv'
-output_path = 's3://outputbucket6'
+output_path = 's3://outputbucket6/'
 
 # Create a dynamic frame from the CSV files
 input_dynamic_frame = glueContext.create_dynamic_frame.from_options(
