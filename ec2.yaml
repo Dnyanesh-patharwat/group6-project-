@@ -1,5 +1,21 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Resources:
+  GlueDatabaseInput:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: input_database  # Replace with your desired database name
+        Description: "Database for input data"
+
+  GlueDatabaseOutput:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: output_database  # Replace with your desired database name
+        Description: "Database for output data"
+
   GlueJob:
     Type: AWS::Glue::Job
     Properties:
@@ -25,3 +41,34 @@ Resources:
       Tags:
         Name: MyGlueJob
         Environment: Production
+
+  GlueCrawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: MyGlueCrawler
+      Role: arn:aws:iam::952084545413:role/aws_glue  # Ensure this role has appropriate permissions
+      DatabaseName: input_database  # Reference the database created for input
+      Targets:
+        S3Targets:
+          - Path: s3://newpiro/input/
+      TablePrefix: my_prefix_  # Optional: Prefix for the tables created
+      CrawlerSecurityConfiguration: my-security-configuration  # Optional: Use if you have specific security configuration
+      SchemaChangePolicy:
+        UpdateBehavior: UPDATE_IN_DATABASE
+        DeleteBehavior: DELETE
+      RecrawlPolicy:
+        RecrawlBehavior: CRAWL_NEW_FOLDERS_ONLY  # Optionally set to CRAWL_EVERYTHING or CRAWL_NEW_FOLDERS_ONLY
+
+Outputs:
+  GlueJobName:
+    Description: "The name of the Glue job"
+    Value: !Ref GlueJob
+  GlueCrawlerName:
+    Description: "The name of the Glue crawler"
+    Value: !Ref GlueCrawler
+  GlueDatabaseInputName:
+    Description: "The name of the input database"
+    Value: !Ref GlueDatabaseInput
+  GlueDatabaseOutputName:
+    Description: "The name of the output database"
+    Value: !Ref GlueDatabaseOutput
