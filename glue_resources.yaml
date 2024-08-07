@@ -18,7 +18,7 @@ Resources:
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://group6data1/input'
+          - Path: 's3://group6data1/input/data.csv'
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
