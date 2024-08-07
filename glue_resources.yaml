@@ -36,7 +36,7 @@ Resources:
         '--job-bookmark-option': 'job-bookmark-enable'
       MaxRetries: 0
       Timeout: 2880
-      GlueVersion: '2.0'
+      GlueVersion: '4.0'
       NumberOfWorkers: 10
       WorkerType: G.1X
 
