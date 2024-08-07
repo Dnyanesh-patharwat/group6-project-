@@ -11,10 +11,10 @@ Resources:
       DefaultArguments:
         '--job-language': 'python'
         '--TempDir': s3://newpiro/temp/
-        '--input_database': input_database_name  # Replace with your input database name
-        '--input_table': input_table_name  # Replace with your input table name
-        '--output_database': output_database_name  # Replace with your output database name
-        '--output_table': output_table_name  # Replace with your output table name
+        '--input_bucket': newpiro
+        '--input_directory': input
+        '--output_bucket': newpiro
+        '--output_directory': output
       MaxCapacity: 2
       GlueVersion: '3.0'
       ExecutionProperty:
