@@ -29,7 +29,7 @@ Resources:
       Role: arn:aws:iam::351475973164:role/LabRole
       Command:
         Name: glueetl
-        ScriptLocation: 's3://group6data1/script/transform_script.py'
+        ScriptLocation: 's3://group6data1/script/pythonscript.py'
         PythonVersion: '3'
       DefaultArguments:
         '--TempDir': 's3://group6data1/temp'
