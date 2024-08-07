@@ -4,7 +4,7 @@ Resources:
     Type: AWS::Glue::Job
     Properties:
       Name: MyGlueJob
-      Role: arn:aws:iam::952084545413:role/aws_glue  # Replace with your Glue role ARN
+      Role: arn:aws:iam::952084545413:role/aws_glue  # Ensure this role has appropriate permissions
       Command:
         Name: glueetl
         ScriptLocation: s3://newpiro/script/PythonScript.py
