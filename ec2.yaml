@@ -18,7 +18,7 @@ Resources:
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://group6data1/input/data.xlsx'
+          - Path: 's3://group6data/input'
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
@@ -32,7 +32,7 @@ Resources:
         ScriptLocation: 's3://group6data1/script/PythonScript.py'
         PythonVersion: '3'
       DefaultArguments:
-        '--TempDir': 's3://group6data1/temp'
+        '--TempDir': 's3://group6data1'
         '--job-bookmark-option': 'job-bookmark-enable'
       MaxRetries: 0
       Timeout: 2880
