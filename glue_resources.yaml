@@ -32,7 +32,7 @@ Resources:
         ScriptLocation: 's3://groupdata6/script/transform_script.py'
         PythonVersion: '3'
       DefaultArguments:
-        '--TempDir': 's3://groupdata6/temp'
+        '--TempDir': 's3://groupdata6/temp/'
         '--job-bookmark-option': 'job-bookmark-enable'
       MaxRetries: 0
       Timeout: 2880
