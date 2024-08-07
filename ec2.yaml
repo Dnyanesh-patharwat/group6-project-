@@ -4,14 +4,24 @@ Resources:
     Type: AWS::Glue::Job
     Properties:
       Name: MyGlueJob
-      Role: arn:aws:iam::494850518194:role/GlueServiceRole  # Replace with your Glue role ARN
+      Role: arn:aws:iam::952084545413:role/aws_glue  # Replace with your Glue role ARN
       Command:
         Name: glueetl
-        ScriptLocation: s3://group6data/scripts/PythonScript.py
+        ScriptLocation: s3://newpiro/script/PythonScript.py
       DefaultArguments:
         '--job-language': 'python'
-        '--TempDir': s3://group6data/temporary/
+        '--TempDir': s3://newpiro/temp/
+        '--input_database': input_database_name  # Replace with your input database name
+        '--input_table': input_table_name  # Replace with your input table name
+        '--output_database': output_database_name  # Replace with your output database name
+        '--output_table': output_table_name  # Replace with your output table name
       MaxCapacity: 2
       GlueVersion: '3.0'
       ExecutionProperty:
         MaxConcurrentRuns: 1
+      WorkerType: G.1X
+      NumberOfWorkers: 2
+      Description: "ETL job to transform data from input directory to output directory"
+      Tags:
+        Name: MyGlueJob
+        Environment: Production
