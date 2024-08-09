@@ -3,15 +3,6 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS CloudFormation template to create a Glue database, crawler, and ETL job using an existing IAM role.
 
 Resources:
-  # Output bucket to store processed data
-  MyS3Bucket1:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: group6-transformation-output-data # Ensure this is a globally unique name
-      Tags:
-        - Key: group6
-          Value: Output bucket for storing processed data
-
   GlueDatabase:
     Type: AWS::Glue::Database
     Properties:
