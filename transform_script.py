@@ -1,11 +1,12 @@
 import sys
-from pyspark.context import SparkContext
-from awsglue.context import GlueContext
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+from awsglue.context import GlueContext
+from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
+from pyspark.sql import functions as SqlFuncs
 
-# Initialize a Glue context
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 sc = SparkContext()
 glueContext = GlueContext(sc)
@@ -13,30 +14,16 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
-# Define the S3 paths
-input_path = 's3://groupdata6/input/data.csv'
-output_path = 's3://outputbucket6/'
+# Script generated for node Amazon S3
+AmazonS3_node1723182686875 = glueContext.create_dynamic_frame.from_options(format_options={"quoteChar": "\"", "withHeader": True, "separator": ","}, connection_type="s3", format="csv", connection_options={"paths": ["s3://group6-project-data/input/HI-Small_Trans.csv"], "recurse": True}, transformation_ctx="AmazonS3_node1723182686875")
 
-# Create a dynamic frame from the CSV files
-input_dynamic_frame = glueContext.create_dynamic_frame.from_options(
-    format_options={"withHeader": True},
-    connection_type="s3",
-    format="csv",
-    connection_options={"paths": [input_path]},
-    transformation_ctx="input_dynamic_frame"
-)
+# Script generated for node Rename Field
+RenameField_node1723183052920 = RenameField.apply(frame=AmazonS3_node1723182686875, old_name="to bank", new_name="Bank", transformation_ctx="RenameField_node1723183052920")
 
-# Transform the dynamic frame as needed (this example does not apply any transformations)
-# If you need transformations, add them here
+# Script generated for node Drop Duplicates
+DropDuplicates_node1723183698719 =  DynamicFrame.fromDF(RenameField_node1723183052920.toDF().dropDuplicates(), glueContext, "DropDuplicates_node1723183698719")
 
-# Write the dynamic frame to S3 in Parquet format
-glueContext.write_dynamic_frame.from_options(
-    frame=input_dynamic_frame,
-    connection_type="s3",
-    format="parquet",
-    connection_options={"path": output_path},
-    transformation_ctx="output_dynamic_frame"
-)
+# Script generated for node Amazon S3
+AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(frame=DropDuplicates_node1723183698719, connection_type="s3", format="csv", connection_options={"path": "s3://group6-transformation-output-data", "compression": "snappy", "partitionKeys": []}, transformation_ctx="AmazonS3_node1723183749939")
 
-# Commit the job
 job.commit()
