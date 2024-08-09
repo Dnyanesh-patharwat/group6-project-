@@ -15,7 +15,7 @@ Resources:
   GlueDatabase:
     Type: AWS::Glue::Database
     Properties:
-      CatalogId: !Ref "AWS::AccountId"
+      CatalogId: 966884175598
       DatabaseInput:
         Name: my_database
 
@@ -44,7 +44,7 @@ Resources:
       MaxRetries: 0
       Timeout: 2880
       GlueVersion: '4.0'
-      NumberOfWorkers: 10
+      NumberOfWorkers: 2
       WorkerType: G.1X  # Corrected worker type
 
 Outputs:
