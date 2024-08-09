@@ -23,7 +23,7 @@ Resources:
     Type: AWS::Glue::Crawler
     Properties:
       Role: arn:aws:iam::966884175598:role/LabRole
-      DatabaseName: !GetAtt GlueDatabase.DatabaseInput.Name
+      DatabaseName: !Ref GlueDatabase
       Name: my_crawler
       Targets:
         S3Targets:
@@ -46,7 +46,7 @@ Resources:
       MaxRetries: 0
       Timeout: 2880
       GlueVersion: '4.0'
-      NumberOfWorkers: 2
+      NumberOfWorkers: 10
       WorkerType: G.1X  # Corrected worker type
 
 Outputs:
