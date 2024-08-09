@@ -44,7 +44,7 @@ Resources:
       MaxRetries: 0
       Timeout: 2880
       GlueVersion: '4.0'
-      NumberOfWorkers: 2
+      NumberOfWorkers: 10
       WorkerType: G.1X  # Corrected worker type
 
 Outputs:
