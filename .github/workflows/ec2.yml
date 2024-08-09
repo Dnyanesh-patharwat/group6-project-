@@ -1,5 +1,3 @@
-name: Deploy Glue Resources
-
 on:
   push:
     branches: [main]
