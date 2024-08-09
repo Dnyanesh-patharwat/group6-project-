@@ -3,6 +3,15 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS CloudFormation template to create a Glue database, crawler, and ETL job using an existing IAM role.
 
 Resources:
+#output bucket which store processing data
+  MyS3Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: group6-transformation-output-data # Replace with a globally unique name
+      Tags:
+        - Key: group6
+          Value: Output bucket for storing processed data
+
   GlueDatabase:
     Type: 'AWS::Glue::Database'
     Properties: 
@@ -18,9 +27,7 @@ Resources:
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://groupdata6/input/data.csv'
-      Schedule:
-        ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
+          - Path: 's3://group6-project-data/input/HI-Small_Trans.csv' #where your data is store 
 
   GlueETLJob:
     Type: 'AWS::Glue::Job'
@@ -29,16 +36,16 @@ Resources:
       Role: arn:aws:iam::966884175598:role/LabRole
       Command:
         Name: glueetl
-        ScriptLocation: 's3://groupdata6/script/transform_script.py'
+        ScriptLocation: 's3://group6-project-data/script/transform_script.py'
         PythonVersion: '3'
       DefaultArguments:
-        '--TempDir': 's3://groupdata6/temp/'
+        '--TempDir': 's3://group6-project-data/temp/'
         '--job-bookmark-option': 'job-bookmark-enable'
       MaxRetries: 0
       Timeout: 2880
       GlueVersion: '4.0'
-      NumberOfWorkers: 10
-      WorkerType: G.1X
+      NumberOfWorkers: 2
+      WorkerType: G.0X
 
 Outputs:
   GlueDatabaseName:
