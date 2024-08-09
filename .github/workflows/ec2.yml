@@ -37,7 +37,7 @@ jobs:
 
       - name: Upload script to S3
         run: |
-          aws s3 cp transform_script.py s3://group6-project-data/input/
+          aws s3 cp transform_script.py s3://group6-project-data/script/
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
