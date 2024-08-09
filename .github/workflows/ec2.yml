@@ -22,7 +22,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install awscli
-          
+
       - name: Upload script to S3
         run: |
           aws s3 cp transform_script.py s3://group6-project-data/script/
@@ -32,29 +32,21 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: create s3 bucket    
-      - run: aws cloudformation create-stack --stack-name s3-bucket --template-body file://buckets.yaml
+      - name: Create S3 Bucket
+        run: |
+          aws cloudformation create-stack --stack-name s3-bucket --template-body file://buckets.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-     
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
       - name: Deploy CloudFormation Stack
         run: |
           aws cloudformation deploy \
             --stack-name glue-resources-stack \
             --template-file glue_resources.yaml \
             --capabilities CAPABILITY_NAMED_IAM
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-      - name: Upload script to S3
-        run: |
-          aws s3 cp transform_script.py s3://group6-project-data/script/
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
