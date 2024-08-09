@@ -27,7 +27,7 @@ Resources:
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://group6-project-data/input/' # Ensure this is a folder path
+          - Path: 's3://group6-project-data/input/HI-Small_Trans.csv' # Ensure this is a folder path
 
   GlueETLJob:
     Type: AWS::Glue::Job
