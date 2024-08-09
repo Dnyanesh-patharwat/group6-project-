@@ -28,7 +28,9 @@ Resources:
       Targets:
         S3Targets:
           - Path: 's3://group6-project-data/input/HI-Small_Trans.csv' # Ensure this is a folder path
-
+      Schedule:
+        ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
+  
   GlueETLJob:
     Type: AWS::Glue::Job
     Properties:
