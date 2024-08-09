@@ -24,6 +24,6 @@ RenameField_node1723183052920 = RenameField.apply(frame=AmazonS3_node17231826868
 DropDuplicates_node1723183698719 =  DynamicFrame.fromDF(RenameField_node1723183052920.toDF().dropDuplicates(), glueContext, "DropDuplicates_node1723183698719")
 
 # Script generated for node Amazon S3
-AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(frame=DropDuplicates_node1723183698719, connection_type="s3", format="csv", connection_options={"path": "s3://group6-project-data/output/", "compression": "snappy", "partitionKeys": []}, transformation_ctx="AmazonS3_node1723183749939")
+AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(frame=DropDuplicates_node1723183698719, connection_type="s3", format="csv", connection_options={"path": "s3://group6-project-data/output/", "partitionKeys": []}, transformation_ctx="AmazonS3_node1723183749939")
 
 job.commit()
