@@ -4,26 +4,26 @@ Description: AWS CloudFormation template to create a Glue database, crawler, and
 
 Resources:
   GlueDatabase:
-    Type: AWS::Glue::Database
-    Properties:
+    Type: 'AWS::Glue::Database'
+    Properties: 
       CatalogId: 966884175598
-      DatabaseInput:
+      DatabaseInput: 
         Name: my_database
 
   GlueCrawler:
-    Type: AWS::Glue::Crawler
+    Type: 'AWS::Glue::Crawler'
     Properties:
       Role: arn:aws:iam::966884175598:role/LabRole
       DatabaseName: !Ref GlueDatabase
       Name: my_crawler
       Targets:
         S3Targets:
-          - Path: 's3://group6-project-data/input/HI-Small_Trans.csv' # Ensure this is a folder path
+          - Path: 's3://group6-project-data/input/HI-Small_Trans.csv'
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
-  
+
   GlueETLJob:
-    Type: AWS::Glue::Job
+    Type: 'AWS::Glue::Job'
     Properties:
       Name: csv_to_parquet_job
       Role: arn:aws:iam::966884175598:role/LabRole
@@ -38,12 +38,12 @@ Resources:
       Timeout: 2880
       GlueVersion: '4.0'
       NumberOfWorkers: 10
-      WorkerType: G.1X  # Corrected worker type
+      WorkerType: G.1X
 
 Outputs:
   GlueDatabaseName:
     Description: Name of the Glue Database
-    Value: !GetAtt GlueDatabase.DatabaseInput.Name
+    Value: !Ref GlueDatabase
 
   GlueCrawlerName:
     Description: Name of the Glue Crawler
