@@ -18,15 +18,14 @@ AmazonS3_node1723182686875 = glueContext.create_dynamic_frame.from_options(
     format_options={
         "quoteChar": "\"",
         "withHeader": True,
-        "separator": ",", 
+        "separator": ",",
         "optimizePerformance": False
     },
     connection_type="s3",
     format="csv",
     connection_options={
-        "paths": ["s3://group6-project-data/input/HI-Small_Trans.csv"], 
-        "recurse": True
-    },
+        "paths": ["s3://group6-project-data/input/HI-Small_Trans.csv"],
+        "recurse": True},
     transformation_ctx="AmazonS3_node1723182686875"
 )
 
@@ -56,7 +55,8 @@ AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(
     frame=col_dyn_fr,
     connection_type="s3",
     format="csv",
-    connection_options={"path": "s3://group6-output-data", "partitionKeys": []},
+    connection_options={"path": "s3://group6-output-data",
+                        "partitionKeys": []},
     transformation_ctx="AmazonS3_node1723183749939"
 )
 
