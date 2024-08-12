@@ -1,5 +1,6 @@
 import sys
-from awsglue.transforms import RenameField  # Import specific functions you need
+# Import specific functions you need
+from awsglue.transforms import RenameField
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
