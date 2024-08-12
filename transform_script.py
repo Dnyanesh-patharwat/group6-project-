@@ -1,11 +1,10 @@
 import sys
-from awsglue.transforms import *
+from awsglue.transforms import RenameField  # Import specific functions you need
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
-from pyspark.sql import functions as SqlFuncs
 
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 sc = SparkContext()
@@ -15,12 +14,13 @@ job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
 # Script generated for node Amazon S3
-AmazonS3_node1723182686875 = \
-glueContext.create_dynamic_frame.from_options(
-    format_options={"quoteChar": "\"",
-                    "withHeader": True,
-                    "separator": ",", 
-                    "optimizePerformance": False},
+AmazonS3_node1723182686875 = glueContext.create_dynamic_frame.from_options(
+    format_options={
+        "quoteChar": "\"",
+        "withHeader": True,
+        "separator": ",", 
+        "optimizePerformance": False
+    },
     connection_type="s3",
     format="csv",
     connection_options={
@@ -49,8 +49,6 @@ DropDuplicates_node1723183698719 = DynamicFrame.fromDF(
 coalesced_df = DropDuplicates_node1723183698719.toDF().coalesce(1)
 
 # Convert back to DynamicFrame
-# coalesced_dynamic_frame = DynamicFrame.fromDF(coalesced_df, glueContext,\
-#                                               "coalesced_dynamic_frame")
 col_dyn_fr = DynamicFrame.fromDF(coalesced_df, glueContext, "coldyn_fr")
 
 # Script generated for node Amazon S3
@@ -58,8 +56,7 @@ AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(
     frame=col_dyn_fr,
     connection_type="s3",
     format="csv",
-    connection_options={"path": "s3://group6-output-data", 
-                        "partitionKeys": []},
+    connection_options={"path": "s3://group6-output-data", "partitionKeys": []},
     transformation_ctx="AmazonS3_node1723183749939"
 )
 
