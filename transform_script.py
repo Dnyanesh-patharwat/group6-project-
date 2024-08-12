@@ -49,7 +49,8 @@ DropDuplicates_node1723183698719 = DynamicFrame.fromDF(
 coalesced_df = DropDuplicates_node1723183698719.toDF().coalesce(1)
 
 # Convert back to DynamicFrame
-coalesced_dynamic_frame = DynamicFrame.fromDF(coalesced_df, glueContext, "coalesced_dynamic_frame")
+coalesced_dynamic_frame = DynamicFrame.fromDF(coalesced_df, glueContext,\
+                                              "coalesced_dynamic_frame")
 
 # Script generated for node Amazon S3
 AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(
