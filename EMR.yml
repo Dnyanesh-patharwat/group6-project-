@@ -2,7 +2,7 @@
   MyEMRCluster:
     Type: AWS::EMR::Cluster
     Properties:
-      Name: MyCluster11
+      Name: MyCluster1
       ReleaseLabel: emr-6.4.0
       Instances:
         MasterInstanceGroup:
