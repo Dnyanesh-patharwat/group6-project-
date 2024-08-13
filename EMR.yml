@@ -1,0 +1,21 @@
+# Example of adding an EMR Cluster
+  MyEMRCluster:
+    Type: AWS::EMR::Cluster
+    Properties:
+      Name: MyCluster1
+      ReleaseLabel: emr-6.4.0
+      Instances:
+        MasterInstanceGroup:
+          InstanceCount: 1
+          InstanceType: m5.xlarge
+        CoreInstanceGroup:
+          InstanceCount: 2
+          InstanceType: m5.xlarge
+        TerminationProtected: false
+      Applications:
+        - Name: Hadoop
+        - Name: Spark
+      VisibleToAllUsers: true
+      LogUri: !Sub 's3://${WebAppBucket}/logs/'
+      JobFlowRole: EMR_EC2_DefaultRole
+      ServiceRole: EMR_DefaultRole
