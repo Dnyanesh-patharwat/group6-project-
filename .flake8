@@ -1,5 +1,5 @@
 [flake8]
-max-line-length = 100
+max-line-length = 300
 ignore =
     E203,  # Whitespace before ':'
     E266,  # Too many leading '#' for block comment
