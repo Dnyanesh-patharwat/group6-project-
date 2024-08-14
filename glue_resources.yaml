@@ -1,6 +1,5 @@
----
 AWSTemplateFormatVersion: '2010-09-09'
-Description: AWS CloudFormation template to create a Glue database, crawler, and ETL job using an existing IAM role.
+Description: AWS CloudFormation template to create a Glue database, crawler, and ETL jobs using an existing IAM role.
 
 Resources:
   GlueDatabase:
@@ -22,6 +21,26 @@ Resources:
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
+  # First Glue Job to Combine Data
+  CombineDataGlueJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: combine_data_job
+      Role: arn:aws:iam::966884175598:role/LabRole
+      Command:
+        Name: glueetl
+        ScriptLocation: 's3://group6-datalake/script/combine_data.py'
+        PythonVersion: '3'
+      DefaultArguments:
+        '--TempDir': 's3://group6-datalake/temp/'
+        '--job-bookmark-option': 'job-bookmark-enable'
+      MaxRetries: 0
+      Timeout: 2880
+      GlueVersion: '4.0'
+      NumberOfWorkers: 10
+      WorkerType: G.1X
+
+  # Second Glue Job to Transform Data
   GlueETLJob:
     Type: 'AWS::Glue::Job'
     Properties:
@@ -40,6 +59,37 @@ Resources:
       NumberOfWorkers: 10
       WorkerType: G.1X
 
+  # Glue Workflow to Orchestrate Jobs
+  GlueWorkflow:
+    Type: 'AWS::Glue::Workflow'
+    Properties:
+      Name: data_processing_workflow
+
+  # Glue Trigger for Combine Data Job
+  CombineDataTrigger:
+    Type: 'AWS::Glue::Trigger'
+    Properties:
+      Name: combine_data_trigger
+      Type: ON_DEMAND
+      WorkflowName: !Ref GlueWorkflow
+      Actions:
+        - JobName: !Ref CombineDataGlueJob
+
+  # Glue Trigger for CSV to Parquet Job, depends on Combine Data Job
+  CsvToParquetTrigger:
+    Type: 'AWS::Glue::Trigger'
+    Properties:
+      Name: csv_to_parquet_trigger
+      Type: CONDITIONAL
+      WorkflowName: !Ref GlueWorkflow
+      Predicate:
+        Conditions:
+          - JobName: !Ref CombineDataGlueJob
+            LogicalOperator: EQUALS
+            State: SUCCEEDED
+      Actions:
+        - JobName: !Ref GlueETLJob
+
 Outputs:
   GlueDatabaseName:
     Description: Name of the Glue Database
@@ -52,3 +102,19 @@ Outputs:
   GlueETLJobName:
     Description: Name of the Glue ETL Job
     Value: !Ref GlueETLJob
+
+  CombineDataGlueJobName:
+    Description: Name of the Combine Data Glue Job
+    Value: !Ref CombineDataGlueJob
+
+  GlueWorkflowName:
+    Description: Name of the Glue Workflow
+    Value: !Ref GlueWorkflow
+
+  CombineDataTriggerName:
+    Description: Name of the Combine Data Trigger
+    Value: !Ref CombineDataTrigger
+
+  CsvToParquetTriggerName:
+    Description: Name of the CSV to Parquet Trigger
+    Value: !Ref CsvToParquetTrigger
