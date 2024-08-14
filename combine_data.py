@@ -43,7 +43,7 @@ merged_df = s3_df.union(jdbc_df)
 merged_df.coalesce(1).write \
     .format("csv") \
     .option("header", "true") \
-    .save("s3a://group6-datalake/output/combine.csv")
+    .save("s3a://group6-datalake/output/combine_data.csv")
 
 # Commit the job
 job.commit()
