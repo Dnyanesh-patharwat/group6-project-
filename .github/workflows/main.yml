@@ -27,7 +27,10 @@ jobs:
         run: |
           aws cloudformation create-stack \
             --stack-name s3-bucket \
-            --template-body file://buckets.yaml
+            --template-body file://buckets.yaml \
+            || aws cloudformation update-stack \
+              --stack-name s3-bucket \
+              --template-body file://buckets.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
@@ -58,7 +61,12 @@ jobs:
 
       - name: Deploy CloudFormation Stack
         run: |
-          aws cloudformation deploy \
+          aws cloudformation describe-stacks --stack-name glue-resources-stack >/dev/null 2>&1 && \
+          aws cloudformation update-stack \
+            --stack-name glue-resources-stack \
+            --template-file glue_resources.yaml \
+            --capabilities CAPABILITY_NAMED_IAM || \
+          aws cloudformation create-stack \
             --stack-name glue-resources-stack \
             --template-file glue_resources.yaml \
             --capabilities CAPABILITY_NAMED_IAM
