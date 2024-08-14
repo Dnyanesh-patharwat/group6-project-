@@ -9,17 +9,7 @@ Resources:
       DatabaseInput: 
         Name: my_database
 
-  GlueCrawler:
-    Type: 'AWS::Glue::Crawler'
-    Properties:
-      Role: arn:aws:iam::966884175598:role/LabRole
-      DatabaseName: !Ref GlueDatabase
-      Name: my_crawler
-      Targets:
-        S3Targets:
-          - Path: 's3://group6-datalake/output/combine_data.csv'
-      Schedule:
-        ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
+
 
   # First Glue Job to Combine Data
   CombineDataGlueJob:
@@ -44,7 +34,7 @@ Resources:
   GlueETLJob:
     Type: 'AWS::Glue::Job'
     Properties:
-      Name: csv_to_parquet_job
+      Name: transformation_job
       Role: arn:aws:iam::966884175598:role/LabRole
       Command:
         Name: glueetl
