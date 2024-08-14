@@ -19,7 +19,7 @@ AmazonS3_node1723638198474 = glueContext.create_dynamic_frame.from_options(
     format_options={"quoteChar": "\"", "withHeader": True, "separator": ",", "optimizePerformance": False},
     connection_type="s3",
     format="csv",
-    connection_options={"paths": ["s3://group6-datalake/combined_Data.csv"], "recurse": True},
+    connection_options={"paths": ["s3://group6-datalake/combine_data.csv"], "recurse": True},
     transformation_ctx="AmazonS3_node1723638198474"
 )
 
