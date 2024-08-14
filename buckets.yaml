@@ -2,7 +2,7 @@ Resources:
   MyS3Bucket1:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: group6-source-data-bucket # Name of bucket
+      BucketName: group6-combined-data # Name of bucket
       Tags:
         - Key: Description
           Value: "This bucket stores raw data from multiple sources."
@@ -10,7 +10,7 @@ Resources:
   MyS3Bucket2:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: group6-final-result-bucket # Name of bucket
+      BucketName: group6-final-transform-data # Name of bucket
       Tags:
         - Key: Description
           Value: "This bucket stores processed data after ETL operations."
