@@ -1,6 +1,5 @@
----
 AWSTemplateFormatVersion: '2010-09-09'
-Description: AWS CloudFormation template to create a Glue database, crawler, and ETL job using an existing IAM role.
+Description: AWS CloudFormation template to create a Glue database, crawler, and ETL jobs using an existing IAM role.
 
 Resources:
   GlueDatabase:
@@ -10,7 +9,7 @@ Resources:
       DatabaseInput: 
         Name: my_database
 
-  GlueETLJob:
+  CombineDataETLJob:
     Type: 'AWS::Glue::Job'
     Properties:
       Name: combine_data_job
@@ -28,7 +27,7 @@ Resources:
       NumberOfWorkers: 10
       WorkerType: G.1X
 
-  GlueCrawler:
+  DataCrawler:
     Type: 'AWS::Glue::Crawler'
     Properties:
       Role: arn:aws:iam::966884175598:role/LabRole
@@ -40,7 +39,7 @@ Resources:
       Schedule:
         ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
-  GlueETLJob:
+  TransformationETLJob:
     Type: 'AWS::Glue::Job'
     Properties:
       Name: transformation_job
@@ -65,8 +64,12 @@ Outputs:
 
   GlueCrawlerName:
     Description: Name of the Glue Crawler
-    Value: !Ref GlueCrawler
+    Value: !Ref DataCrawler
 
-  GlueETLJobName:
-    Description: Name of the Glue ETL Job
-    Value: !Ref GlueETLJob
+  CombineDataETLJobName:
+    Description: Name of the Combine Data Glue Job
+    Value: !Ref CombineDataETLJob
+
+  TransformationETLJobName:
+    Description: Name of the Transformation Glue Job
+    Value: !Ref TransformationETLJob
