@@ -20,7 +20,7 @@ s3_data = glueContext.create_dynamic_frame.from_options(
     format_options={"quoteChar": "\"", "withHeader": True, "separator": ",", "optimizePerformance": False},
     connection_type="s3",
     format="csv",
-    connection_options={"paths": ["s3://forinjestionjob/part1.csv"], "recurse": True},
+    connection_options={"paths": ["s3://s3-raw-source-data/part1.csv"], "recurse": True},
     transformation_ctx="s3_data"
 )
 
@@ -43,7 +43,7 @@ merged_df = s3_df.union(jdbc_df)
 merged_df.coalesce(1).write \
     .format("csv") \
     .option("header", "true") \
-    .save("s3a://destinationbucket43/output/combine.csv")
+    .save("s3a://group6-datalake/output/combine.csv")
 
 # Commit the job
 job.commit()
