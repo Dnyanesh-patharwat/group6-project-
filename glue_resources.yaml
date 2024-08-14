@@ -1,4 +1,4 @@
----
+-------
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS CloudFormation template to create a Glue database, crawler, and ETL job using an existing IAM role.
 
