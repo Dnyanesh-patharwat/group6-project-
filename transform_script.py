@@ -1,13 +1,12 @@
 import sys
-# Import specific functions you need
-
-from awsglue.transforms import RenameField
+from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
-#
+from pyspark.sql import functions as F
+
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 sc = SparkContext()
 glueContext = GlueContext(sc)
@@ -16,50 +15,58 @@ job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
 # Script generated for node Amazon S3
-AmazonS3_node1723182686875 = glueContext.create_dynamic_frame.from_options(
-    format_options={
-        "quoteChar": "\"",
-        "withHeader": True,
-        "separator": ",",
-        "optimizePerformance": False
-    },
+AmazonS3_node1723638198474 = glueContext.create_dynamic_frame.from_options(
+    format_options={"quoteChar": "\"", "withHeader": True, "separator": ",", "optimizePerformance": False},
     connection_type="s3",
     format="csv",
-    connection_options={
-        "paths": ["s3://group6-project-data/input/HI-Small_Trans.csv"],
-        "recurse": True},
-    transformation_ctx="AmazonS3_node1723182686875"
+    connection_options={"paths": ["s3://group6-datalake/combined_Data.csv"], "recurse": True},
+    transformation_ctx="AmazonS3_node1723638198474"
 )
 
-# Script generated for node Rename Field
-RenameField_node1723183052920 = RenameField.apply(
-    frame=AmazonS3_node1723182686875,
-    old_name="to bank",
-    new_name="Bank",
-    transformation_ctx="RenameField_node1723183052920"
+# Script generated for node Change Schema
+ChangeSchema_node1723638356856 = ApplyMapping.apply(
+    frame=AmazonS3_node1723638198474,
+    mappings=[
+        ("customer_id", "string", "customer_id", "int"),
+        ("age", "string", "age", "int"),
+        ("gender", "string", "gender", "string"),
+        ("transaction_date", "string", "transaction_date", "string"),  # Keep as string initially
+        ("quantity", "string", "quantity", "int"),
+        ("unit_price", "string", "unit_price", "double"),  # Changed to double
+        ("store_location", "string", "store_location", "string"),
+        ("week_of_year", "string", "week_of_year", "int"),  # Changed to int
+        ("purchase_frequency", "string", "purchase_frequency", "string"),
+        ("online_purchases", "string", "online_purchases", "string"),
+        ("in_store_purchases", "string", "in_store_purchases", "timestamp"),
+        ("total_sales", "string", "total_sales", "double"),  # Changed to double
+        ("product_rating", "string", "product_rating", "float"),
+        ("season", "string", "season", "string")
+    ],
+    transformation_ctx="ChangeSchema_node1723638356856"
 )
 
-# Script generated for node Drop Duplicates
-DropDuplicates_node1723183698719 = DynamicFrame.fromDF(
-    RenameField_node1723183052920.toDF().dropDuplicates(),
-    glueContext,
-    "DropDuplicates_node1723183698719"
-)
+# Convert DynamicFrame to DataFrame
+df = ChangeSchema_node1723638356856.toDF()
 
-# Coalesce to a single partition to write a single output file
-coalesced_df = DropDuplicates_node1723183698719.toDF().coalesce(1)
+# Example transformation: Convert `transaction_date` to a specific date format
+df = df.withColumn("transaction_date", F.to_date(F.col("transaction_date"), "dd-MM-yyyy"))
 
-# Convert back to DynamicFrame
-col_dyn_fr = DynamicFrame.fromDF(coalesced_df, glueContext, "coldyn_fr")
+# Example transformation: Add a new column `total_amount` calculated from `quantity` and `unit_price`
+df = df.withColumn("total_amount", F.col("quantity") * F.col("unit_price"))
 
-# Script generated for node Amazon S3
-AmazonS3_node1723183749939 = glueContext.write_dynamic_frame.from_options(
-    frame=col_dyn_fr,
+# Coalesce the DataFrame into a single partition (one file)
+df = df.coalesce(1)
+
+# Convert DataFrame back to DynamicFrame
+dynamic_frame = DynamicFrame.fromDF(df, glueContext, "dynamic_frame")
+
+# Write the coalesced data back to S3
+glueContext.write_dynamic_frame.from_options(
+    frame=dynamic_frame,
     connection_type="s3",
-    format="csv",
-    connection_options={"path": "s3://group6-output-data",
-                        "partitionKeys": []},
-    transformation_ctx="AmazonS3_node1723183749939"
+    connection_options={"path": "s3://group6-datawarehouse/output/", "partitionKeys": []},
+    format="parquet",
+    format_options={"compression": "UNCOMPRESSED"}  # Specify uncompressed format
 )
 
 job.commit()
