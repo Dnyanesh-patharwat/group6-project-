@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    name: Deploy CloudFormation Stack and Run Glue Job
+    name: Deploy CloudFormation Stack and Run Glue Jobs
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +27,9 @@ jobs:
         run: |
           aws cloudformation create-stack \
             --stack-name s3-bucket \
+            --template-body file://buckets.yaml || \
+          aws cloudformation update-stack \
+            --stack-name s3-bucket \
             --template-body file://buckets.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
@@ -46,7 +49,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Upload script to S3
+      - name: Upload scripts to S3
         run: |
           aws s3 cp combine_data.py s3://group6-datalake/script/
           aws s3 cp transform_script.py s3://group6-datalake/script/
@@ -56,7 +59,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Deploy CloudFormation Stack
+      - name: Deploy Glue Resources
         run: |
           aws cloudformation deploy \
             --stack-name glue-resources-stack \
@@ -68,14 +71,26 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Start Glue Job
+      - name: Start Combine Data Job
         run: |
           aws glue start-job-run --job-name combine_data_job
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}    
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Wait for Combine Data Job to Finish
+        run: |
+          while [[ $(aws glue get-job-run --job-name combine_data_job --run-id $(aws glue list-job-runs --job-name combine_data_job --query 'JobRuns[0].Id' --output text) --query "JobRun.JobRunState" --output text) != "SUCCEEDED" ]]; do
+            echo "Waiting for combine data job to finish..."
+            sleep 60
+          done
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
       - name: Start Glue Crawler
         run: |
@@ -98,7 +113,7 @@ jobs:
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
 
-      - name: Start Glue Job2
+      - name: Start Transformation Job
         run: |
           aws glue start-job-run --job-name transformation_job
         env:
@@ -106,5 +121,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
           AWS_DEFAULT_REGION: us-east-1
           AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-
-
