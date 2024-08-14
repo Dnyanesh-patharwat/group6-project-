@@ -92,7 +92,7 @@ jobs:
 
       - name: Start Glue Job
         run: |
-          aws glue start-job-run --job-name csv_to_parquet_job
+          aws glue start-job-run --job-name transformation_job
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
