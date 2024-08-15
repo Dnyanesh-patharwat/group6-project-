@@ -36,8 +36,8 @@ ChangeSchema_node1723638356856 = ApplyMapping.apply(
         ("store_location", "string", "store_location", "string"),
         ("week_of_year", "string", "week_of_year", "int"),  # Changed to int
         ("purchase_frequency", "string", "purchase_frequency", "string"),
-        ("online_purchases", "string", "online_purchases", "string"),
-        ("in_store_purchases", "string", "in_store_purchases", "timestamp"),
+        ("online_purchases", "string", "online_purchases", "int"),
+        ("in_store_purchases", "string", "in_store_purchases", "int"),
         ("total_sales", "string", "total_sales", "double"),  # Changed to double
         ("product_rating", "string", "product_rating", "float"),
         ("season", "string", "season", "string")
@@ -50,9 +50,6 @@ df = ChangeSchema_node1723638356856.toDF()
 
 # Example transformation: Convert `transaction_date` to a specific date format
 df = df.withColumn("transaction_date", F.to_date(F.col("transaction_date"), "dd-MM-yyyy"))
-
-# Example transformation: Add a new column `total_amount` calculated from `quantity` and `unit_price`
-df = df.withColumn("total_amount", F.col("quantity") * F.col("unit_price"))
 
 # Coalesce the DataFrame into a single partition (one file)
 df = df.coalesce(1)
