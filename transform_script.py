@@ -51,9 +51,6 @@ df = ChangeSchema_node1723638356856.toDF()
 # Example transformation: Convert `transaction_date` to a specific date format
 df = df.withColumn("transaction_date", F.to_date(F.col("transaction_date"), "dd-MM-yyyy"))
 
-# Example transformation: Add a new column `total_amount` calculated from `quantity` and `unit_price`
-df = df.withColumn("total_amount", F.col("quantity") * F.col("unit_price"))
-
 # Coalesce the DataFrame into a single partition (one file)
 df = df.coalesce(1)
 
