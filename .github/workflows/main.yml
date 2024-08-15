@@ -85,7 +85,7 @@ jobs:
           RUN_ID=$(aws glue get-job-runs --job-name combine_data_job --query 'JobRuns[0].Id' --output text)
           until [ "$(aws glue get-job-run --job-name combine_data_job --run-id $RUN_ID --query 'JobRun.JobRunState' --output text)" == "SUCCEEDED" ]; do
             echo "Waiting for combine data job to finish..."
-            sleep 60
+            sleep 15
           done
           echo "Combine data job completed successfully!"
 
@@ -108,7 +108,7 @@ jobs:
         run: |
           while [[ $(aws glue get-crawler --name my_crawler --query "Crawler.State" --output text) != "READY" ]]; do
             echo "Waiting for crawler to finish..."
-            sleep 60
+            sleep 20
           done
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
