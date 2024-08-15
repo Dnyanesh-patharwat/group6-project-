@@ -82,10 +82,13 @@ jobs:
 
       - name: Wait for Combine Data Job to Finish
         run: |
-          while [[ $(aws glue get-job-run --job-name combine_data_job --run-id $(aws glue list-job-runs --job-name combine_data_job --query 'JobRuns[0].Id' --output text) --query "JobRun.JobRunState" --output text) != "SUCCEEDED" ]]; do
+          RUN_ID=$(aws glue get-job-runs --job-name combine_data_job --query 'JobRuns[0].Id' --output text)
+          until [ "$(aws glue get-job-run --job-name combine_data_job --run-id $RUN_ID --query 'JobRun.JobRunState' --output text)" == "SUCCEEDED" ]; do
             echo "Waiting for combine data job to finish..."
             sleep 60
           done
+          echo "Combine data job completed successfully!"
+
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
