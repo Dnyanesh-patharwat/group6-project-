@@ -7,6 +7,7 @@ from awsglue.job import Job
 from awsglue.dynamicframe import DynamicFrame
 from pyspark.sql import functions as F
 
+# Initialize the job
 args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 sc = SparkContext()
 glueContext = GlueContext(sc)
