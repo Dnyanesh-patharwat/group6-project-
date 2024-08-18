@@ -1,4 +1,5 @@
 # creating an s3 bucket
+
 Resources:
   MyS3Bucket1:
     Type: AWS::S3::Bucket
