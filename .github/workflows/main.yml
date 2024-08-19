@@ -1,0 +1,126 @@
+name: Deploy Glue Resources
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy CloudFormation Stack and Run Glue Jobs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.7'
+
+      - name: Install AWS CLI
+        run: |
+          python -m pip install --upgrade pip
+          pip install awscli
+
+      - name: Create S3 Bucket
+        run: |
+          aws cloudformation create-stack \
+            --stack-name s3-bucket \
+            --template-body file://buckets.yaml || \
+          aws cloudformation update-stack \
+            --stack-name s3-bucket \
+            --template-body file://buckets.yaml
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Wait for S3 Bucket Creation
+        run: |
+          until aws s3api head-bucket --bucket group6-datalake --region us-east-1; do
+            echo "Waiting for S3 bucket creation..."
+            sleep 10
+          done
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Upload scripts to S3
+        run: |
+          aws s3 cp combine_data.py s3://group6-datalake/script/
+          aws s3 cp transform_script.py s3://group6-datalake/script/
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Deploy Glue Resources
+        run: |
+          aws cloudformation deploy \
+            --stack-name glue-resources-stack \
+            --template-file glue_resources.yaml \
+            --capabilities CAPABILITY_NAMED_IAM
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Start Combine Data Job
+        run: |
+          aws glue start-job-run --job-name combine_data_job
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Wait for Combine Data Job to Finish
+        run: |
+          RUN_ID=$(aws glue get-job-runs --job-name combine_data_job --query 'JobRuns[0].Id' --output text)
+          until [ "$(aws glue get-job-run --job-name combine_data_job --run-id $RUN_ID --query 'JobRun.JobRunState' --output text)" == "SUCCEEDED" ]; do
+            echo "Waiting for combine data job to finish..."
+            sleep 15
+          done
+          echo "Combine data job completed successfully!"
+
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Start Glue Crawler
+        run: |
+          aws glue start-crawler --name my_crawler
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Wait for Crawler to Finish
+        run: |
+          while [[ $(aws glue get-crawler --name my_crawler --query "Crawler.State" --output text) != "READY" ]]; do
+            echo "Waiting for crawler to finish..."
+            sleep 20
+          done
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Start Transformation Job
+        run: |
+          aws glue start-job-run --job-name transformation_job
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}

@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template to create a Glue database, crawler, and ETL jobs using an existing IAM role.
+
+Resources:
+  GlueDatabase:
+    Type: 'AWS::Glue::Database'
+    Properties: 
+      CatalogId: 966884175598
+      DatabaseInput: 
+        Name: my_database
+
+  CombineDataETLJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: combine_data_job
+      Role: arn:aws:iam::966884175598:role/LabRole
+      Command:
+        Name: glueetl
+        ScriptLocation: 's3://group6-datalake/script/combine_data.py'
+        PythonVersion: '3'
+      DefaultArguments:
+        '--TempDir': 's3://group6-datalake/temp/'
+        '--job-bookmark-option': 'job-bookmark-enable'
+      MaxRetries: 0
+      Timeout: 2880
+      GlueVersion: '4.0'
+      NumberOfWorkers: 10
+      WorkerType: G.1X
+
+  DataCrawler:
+    Type: 'AWS::Glue::Crawler'
+    Properties:
+      Role: arn:aws:iam::966884175598:role/LabRole
+      DatabaseName: !Ref GlueDatabase
+      Name: my_crawler
+      Targets:
+        S3Targets:
+          - Path: 's3://group6-datawarehouse/output/combine_data.csv'
+      Schedule:
+        ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
+
+  TransformationETLJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: transformation_job
+      Role: arn:aws:iam::966884175598:role/LabRole
+      Command:
+        Name: glueetl
+        ScriptLocation: 's3://group6-datalake/script/transform_script.py'
+        PythonVersion: '3'
+      DefaultArguments:
+        '--TempDir': 's3://group6-datalake/temp2/'
+        '--job-bookmark-option': 'job-bookmark-enable'
+      MaxRetries: 0
+      Timeout: 2880
+      GlueVersion: '4.0'
+      NumberOfWorkers: 10
+      WorkerType: G.1X
+
+Outputs:
+  GlueDatabaseName:
+    Description: Name of the Glue Database
+    Value: !Ref GlueDatabase
+
+  GlueCrawlerName:
+    Description: Name of the Glue Crawler
+    Value: !Ref DataCrawler
+
+  CombineDataETLJobName:
+    Description: Name of the Combine Data Glue Job
+    Value: !Ref CombineDataETLJob
+
+  TransformationETLJobName:
+    Description: Name of the Transformation Glue Job
+    Value: !Ref TransformationETLJob

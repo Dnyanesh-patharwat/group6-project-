@@ -1,0 +1,18 @@
+# creating an s3 bucket
+
+Resources:
+  MyS3Bucket1:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: group6-datalake # Name of bucket
+      Tags:
+        - Key: Description
+          Value: "This bucket stores raw data from multiple sources."
+
+  MyS3Bucket2:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: group6-datawarehouse # Name of bucket
+      Tags:
+        - Key: Description
+          Value: "This bucket stores processed data after ETL operations."
