@@ -1,67 +1,75 @@
-import sys
-import boto3
-from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
-from awsglue.context import GlueContext
-from awsglue.job import Job
+AWSTemplateFormatVersion: '2010-09-09'
+Description: AWS CloudFormation template to create a Glue database, crawler, and ETL jobs using an existing IAM role.
 
-# Initialize the job
-args = getResolvedOptions(sys.argv, ['JOB_NAME'])
-sc = SparkContext()
-glueContext = GlueContext(sc)
-spark = glueContext.spark_session
-job = Job(glueContext)
-job.init(args['JOB_NAME'], args)
+Resources:
+  GlueDatabase:
+    Type: 'AWS::Glue::Database'
+    Properties: 
+      CatalogId: 966884175598
+      DatabaseInput: 
+        Name: my_database
 
-# Step 1: Read data from the first S3 source
-s3_data1 = glueContext.create_dynamic_frame.from_options(
-    format_options={"quoteChar": "\"", "withHeader": True, "separator": ","},
-    connection_type="s3",
-    format="csv",
-    connection_options={"paths": ["s3://s3-raw-source-data/part1.csv"], "recurse": True},
-    transformation_ctx="s3_data1"
-)
+  CombineDataETLJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: combine_data_job
+      Role: arn:aws:iam::966884175598:role/LabRole
+      Command:
+        Name: glueetl
+        ScriptLocation: 's3://group6-datalake/script/combine_data.py'
+        PythonVersion: '3'
+      DefaultArguments:
+        '--TempDir': 's3://group6-datalake/temp/'
+        '--job-bookmark-option': 'job-bookmark-enable'
+      MaxRetries: 0
+      Timeout: 2880
+      GlueVersion: '4.0'
+      NumberOfWorkers: 10
+      WorkerType: G.1X
 
-# Step 2: Read data from the Glue Data Catalog (second source)
-catalog_data = glueContext.create_dynamic_frame.from_catalog(
-    database="database_part2_sql",
-    table_name="sql_data_part2",
-    transformation_ctx="catalog_data"
-)
+  DataCrawler:
+    Type: 'AWS::Glue::Crawler'
+    Properties:
+      Role: arn:aws:iam::966884175598:role/LabRole
+      DatabaseName: !Ref GlueDatabase
+      Name: my_crawler
+      Targets:
+        S3Targets:
+          - Path: 's3://group6-datawarehouse/output/combine_data.csv'
+      Schedule:
+        ScheduleExpression: 'cron(0 12 * * ? *)' # Run daily at 12:00 UTC
 
-# Step 3: Convert DynamicFrames to DataFrames for easier manipulation
-df_s3_data1 = s3_data1.toDF()
-df_catalog_data = catalog_data.toDF()
+  TransformationETLJob:
+    Type: 'AWS::Glue::Job'
+    Properties:
+      Name: transformation_job
+      Role: arn:aws:iam::966884175598:role/LabRole
+      Command:
+        Name: glueetl
+        ScriptLocation: 's3://group6-datalake/script/transform_script.py'
+        PythonVersion: '3'
+      DefaultArguments:
+        '--TempDir': 's3://group6-datalake/temp2/'
+        '--job-bookmark-option': 'job-bookmark-enable'
+      MaxRetries: 0
+      Timeout: 2880
+      GlueVersion: '4.0'
+      NumberOfWorkers: 10
+      WorkerType: G.1X
 
-# Step 4: Combine the data from both DataFrames
-combined_df = df_s3_data1.union(df_catalog_data)
+Outputs:
+  GlueDatabaseName:
+    Description: Name of the Glue Database
+    Value: !Ref GlueDatabase
 
-# Step 5: Write the combined data back to S3 as a single CSV file (temporary directory)
-temp_output_path = "s3://group6-datalake/combined_output_temp/"
-combined_df.coalesce(1).write \
-    .format("csv") \
-    .option("header", "true") \
-    .save(temp_output_path)
+  GlueCrawlerName:
+    Description: Name of the Glue Crawler
+    Value: !Ref DataCrawler
 
-# Step 6: Rename the part file to combine_data.csv
-s3_client = boto3.client('s3')
-bucket_name = 'group6-datalake'
-temp_folder = 'combined_output_temp/'
+  CombineDataETLJobName:
+    Description: Name of the Combine Data Glue Job
+    Value: !Ref CombineDataETLJob
 
-# List objects in the temporary output folder
-response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=temp_folder)
-for obj in response['Contents']:
-    if obj['Key'].endswith('.csv'):
-        temp_file_key = obj['Key']
-        # Copy the file to the desired location with the correct name
-        s3_client.copy_object(
-            Bucket=bucket_name,
-            CopySource={'Bucket': bucket_name, 'Key': temp_file_key},
-            Key='output/combine_data.csv'
-        )
-        # Delete the temporary file
-        s3_client.delete_object(Bucket=bucket_name, Key=temp_file_key)
-
-# Commit the job
-job.commit()
+  TransformationETLJobName:
+    Description: Name of the Transformation Glue Job
+    Value: !Ref TransformationETLJob
