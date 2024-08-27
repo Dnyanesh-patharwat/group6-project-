@@ -94,3 +94,5 @@ output_path = "s3://group6-datawarehouse/output/"
 df.write.parquet(output_path, mode="overwrite")
 
 job.commit()
+
+
