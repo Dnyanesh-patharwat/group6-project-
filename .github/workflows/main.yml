@@ -25,12 +25,9 @@ jobs:
 
       - name: Create S3 Bucket
         run: |
-          aws cloudformation create-stack \
-            --stack-name s3-bucket \
-            --template-body file://buckets.yaml || \
-          aws cloudformation update-stack \
-            --stack-name s3-bucket \
-            --template-body file://buckets.yaml
+          aws cloudformation deploy \
+          --stack-name s3-bucket \
+          --template-file buckets.yaml
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_KEY }}
